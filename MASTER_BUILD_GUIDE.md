@@ -74,11 +74,11 @@
 ║   │              LOOMI CONNECT MCP — READ PHASE                    │ ║
 ║   │  https://loomi-mcp-alpha.bloomreach.com/mcp (NO trailing /)    │ ║
 ║   │                                                                │ ║
-║   │  get_customer_properties ──► tier, LTV, segments               │ ║
-║   │  get_customer_prediction_score ──► churn_risk, engage_score    │ ║
-║   │  list_customer_events ──► infer journey state & patterns       │ ║
-║   │  execute_analytics ──► funnel metrics, conversion rate         │ ║
-║   │  get_api_trigger ──► identify write-back scenario URL          │ ║
+║   │  get_customer_properties ──► tier, LTV, segments                │ ║
+║   │  get_customer_prediction_score ──► churn_risk, engage_score     │ ║
+║   │  list_customer_events ──► infer journey state & patterns        │ ║
+║   │  execute_analytics ──► funnel metrics, conversion rate          │ ║
+║   │  get_api_trigger ──► identify write-back scenario URL           │ ║
 ║   └────────────────────────┬───────────────────────────────────────┘ ║
 ║                            │ MCPCustomerContext                       ║
 ║                            ▼                                          ║
