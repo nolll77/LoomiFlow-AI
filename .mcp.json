@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "loomi-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://loomi-mcp-alpha.bloomreach.com/mcp"],
+      "env": {}
+    }
+  }
+}

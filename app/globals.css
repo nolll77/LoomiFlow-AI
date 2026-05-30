@@ -1,0 +1,71 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #05060A;
+  --panel: #0B0F1A;
+  --border: #1C2333;
+  --fraud: #FF3B3B;
+  --success: #2EE59D;
+  --info: #4DA3FF;
+  --warning: #FF9F1C;
+}
+
+body { background: var(--bg); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb { background: #2a3450; border-radius: 2px; }
+
+/* Heartbeat animation */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.015); opacity: 0.97; }
+}
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, -2px); }
+  40% { transform: translate(3px, 2px); }
+  60% { transform: translate(-2px, 3px); }
+  80% { transform: translate(2px, -3px); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 59, 59, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); }
+}
+@keyframes flow {
+  0% { transform: translateX(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+@keyframes beam {
+  0% { stroke-dashoffset: 1000; opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+.animate-heartbeat { animation: heartbeat 2s ease-in-out infinite; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
+.animate-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+
+/* Panel glass effect */
+.panel-glass {
+  background: rgba(11, 15, 26, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(28, 35, 51, 0.8);
+}
+
+/* Decision badge */
+.badge-block { background: rgba(255,59,59,0.15); color: #FF3B3B; border: 1px solid rgba(255,59,59,0.3); }
+.badge-allow { background: rgba(46,229,157,0.15); color: #2EE59D; border: 1px solid rgba(46,229,157,0.3); }
+.badge-hold { background: rgba(255,159,28,0.15); color: #FF9F1C; border: 1px solid rgba(255,159,28,0.3); }
+.badge-step { background: rgba(77,163,255,0.15); color: #4DA3FF; border: 1px solid rgba(77,163,255,0.3); }
+
+/* Burst mode */
+.burst-mode { animation: shake 0.3s ease-in-out infinite; background: rgba(255,0,0,0.04) !important; }
