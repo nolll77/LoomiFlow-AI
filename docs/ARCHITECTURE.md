@@ -1,4 +1,4 @@
-# 🏛️ LoomiFlow AI — Architecture Guide
+# 🏛️ LoomiFlow AI - Architecture Guide
 
 **Loomi Connect AI Hackathon 2026**  
 Ce document détaille l'architecture complète de l'Autonomous Commerce Operations Agent (ACOA).
@@ -9,74 +9,74 @@ Ce document détaille l'architecture complète de l'Autonomous Commerce Operatio
 
 ```text
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                    LOOMIFLOW AI — FULL STACK ARCHITECTURE             ║
+║                    LOOMIFLOW AI - FULL STACK ARCHITECTURE             ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║                                                                       ║
 ║   EXTERNAL TRIGGERS                                                   ║
-║   ┌─────────────┐   ┌──────────────┐   ┌─────────────────────┐      ║
-║   │ PayPal      │   │ Demo Button  │   │ Load Test           │      ║
-║   │ Webhook     │   │ /api/simulate│   │ Simulator           │      ║
-║   └──────┬──────┘   └──────┬───────┘   └──────────┬──────────┘      ║
-║          │                 │                       │                  ║
-║          └─────────────────┴───────────────────────┘                 ║
-║                            │                                          ║
+║   ┌─────────────┐   ┌──────────────┐   ┌─────────────────────┐        ║
+║   │ PayPal      │   │ Demo Button  │   │ Load Test                 │  ║
+║   │ Webhook     │   │ /api/simulate│   │ Simulator                 │  ║
+║   └──────┬──────┘   └──────┬───────┘   └──────────┬──────────┘        ║
+║          │                 │                                       │  ║
+║          └─────────────────┴───────────────────────┘                  ║
+║                                                                    │  ║
 ║                            ▼                                          ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │                  COMMERCE EVENT NORMALIZER                     │ ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │                  COMMERCE EVENT NORMALIZER                     │  ║
 ║   │  payment_failed | cart_abandonment | fraud_detected | vip_at_risk│║
-║   └────────────────────────┬───────────────────────────────────────┘ ║
-║                            │                                          ║
+║   └────────────────────────┬───────────────────────────────────────┘  ║
+║                                                                    │  ║
 ║                            ▼                                          ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │              LOOMI CONNECT MCP — READ PHASE                    │ ║
-║   │  https://loomi-mcp-alpha.bloomreach.com/mcp (NO trailing /)    │ ║
-║   │                                                                │ ║
-║   │  get_customer_properties ──► tier, LTV, segments                │ ║
-║   │  get_customer_prediction_score ──► churn_risk, engage_score     │ ║
-║   │  list_customer_events ──► infer journey state & patterns        │ ║
-║   │  execute_analytics ──► funnel metrics, conversion rate          │ ║
-║   │  get_api_trigger ──► identify write-back scenario URL           │ ║
-║   └────────────────────────┬───────────────────────────────────────┘ ║
-║                            │ MCPCustomerContext                       ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │              LOOMI CONNECT MCP - READ PHASE                    │  ║
+║   │  https://loomi-mcp-alpha.bloomreach.com/mcp (NO trailing /)    │  ║
+║   │                                                                │  ║
+║   │  get_customer_properties --> tier, LTV, segments               │  ║
+║   │  get_customer_prediction_score --> churn_risk, engage_score    │  ║
+║   │  list_customer_events --> infer journey state & patterns       │  ║
+║   │  execute_analytics --> funnel metrics, conversion rate         │  ║
+║   │  get_api_trigger --> identify write-back scenario URL          │  ║
+║   └────────────────────────┬───────────────────────────────────────┘  ║
+║                                                                    │  ║
 ║                            ▼                                          ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │              MULTI-AGENT PARALLEL ENGINE                       │ ║
-║   │                                                                │ ║
-║   │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │ ║
-║   │  │ FRAUD AGENT  │  │REVENUE AGENT │  │   CX AGENT   │        │ ║
-║   │  │   w=0.62     │  │   w=0.23     │  │   w=0.15     │        │ ║
-║   │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘        │ ║
-║   │         │                 │                   │                │ ║
-║   │         └─────────────────┴───────────────────┘                │ ║
-║   │                           │ Promise.all()                       │ ║
-║   └───────────────────────────┼────────────────────────────────────┘ ║
-║                               │                                       ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │              MULTI-AGENT PARALLEL ENGINE                       │  ║
+║   │                                                                │  ║
+║   │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │    ║
+║   │  │ FRAUD AGENT  │  │REVENUE AGENT │  │   CX AGENT   │          │  ║
+║   │  │   w=0.62     │  │   w=0.23     │  │   w=0.15     │          │  ║
+║   │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘        │    ║
+║   │         │                 │                   │                │  ║
+║   │         └─────────────────┴───────────────────┘                │  ║
+║   │                           │ Promise.all()                      │  ║
+║   └───────────────────────────┼────────────────────────────────────┘  ║
+║                                                                    │  ║
 ║                               ▼                                       ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │                    ORCHESTRATOR ENGINE                         │ ║
-║   │                                                                │ ║
-║   │  RULE 1: fraud>0.85 + ltv<500  ──────────────► BLOCK          │ ║
-║   │  RULE 2: fraud>0.60 + ltv>1000 ──────────────► STEP_UP_AUTH   │ ║
-║   │  RULE 3: fraud<0.40 + revenue>200 ────────────► ALLOW         │ ║
-║   │  RULE 4: else ────────────────────────────────► HOLD          │ ║
-║   └────────────────────────────────────────────────────────────────┘ ║
-║                               │                                       ║
-║          ┌────────────────────┼─────────────────────┐                ║
-║          │                   │                      │                 ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │                    ORCHESTRATOR ENGINE                         │  ║
+║   │                                                                │  ║
+║   │  RULE 1: fraud>0.85 + ltv<500  ────────────--> BLOCK           │  ║
+║   │  RULE 2: fraud>0.60 + ltv>1000 ────────────--> STEP_UP_AUTH    │  ║
+║   │  RULE 3: fraud<0.40 + revenue>200 ──────────--> ALLOW          │  ║
+║   │  RULE 4: else ──────────────────────────────--> HOLD           │  ║
+║   └────────────────────────────────────────────────────────────────┘  ║
+║                                                                    │  ║
+║          ┌────────────────────┼─────────────────────┐                 ║
+║          │                   │                                     │  ║
 ║          ▼                   ▼                      ▼                 ║
-║   [OBSERVABILITY]    [MEMORY GRAPH]       [INCIDENT RECONSTRUCTOR]   ║
-║   tokens, cost,      influence weights,   DAG, root-cause,           ║
-║   latency breakdown  top drivers          narrative, severity/100    ║
-║          │                   │                      │                 ║
-║          └────────────────────┴─────────────────────┘                ║
-║                               │                                       ║
+║   [OBSERVABILITY]    [MEMORY GRAPH]       [INCIDENT RECONSTRUCTOR]    ║
+║   tokens, cost,      influence weights,   DAG, root-cause,            ║
+║   latency breakdown  top drivers          narrative, severity/100     ║
+║          │                   │                                     │  ║
+║          └────────────────────┴─────────────────────┘                 ║
+║                                                                    │  ║
 ║                               ▼                                       ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │              BLOOMREACH WRITE PHASE                            │ ║
-║   │  1. updateCustomerProperty ──► recovery_initiated = true       │ ║
-║   │  2. trackCustomerEvent ──────► fire Bloomreach scenario        │ ║
-║   │  3. Bloomreach scenario ─────► Mailgun → customer email        │ ║
-║   └────────────────────────────────────────────────────────────────┘ ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │              BLOOMREACH WRITE PHASE                            │  ║
+║   │  1. updateCustomerProperty --> recovery_initiated = true       │  ║
+║   │  2. trackCustomerEvent ────--> fire Bloomreach scenario        │  ║
+║   │  3. Bloomreach scenario ───--> Mailgun → customer email        │  ║
+║   └────────────────────────────────────────────────────────────────┘  ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
 

@@ -1,8 +1,6 @@
-# ╔══════════════════════════════════════════════════════════════════════╗
-# ║   LOOMIFLOW AI — MASTER BUILD GUIDE V2                               ║
-# ║   Loomi Connect AI Hackathon 2026 | Track 6: Cross-MCP Orchestration ║
-# ║   ACOA — Autonomous Commerce Operations Agent                        ║
-# ╚══════════════════════════════════════════════════════════════════════╝
+# LOOMIFLOW AI - MASTER BUILD GUIDE V2
+## Loomi Connect AI Hackathon 2026 | Track 6: Cross-MCP Orchestration
+### ACOA - Autonomous Commerce Operations Agent
 
 > **Ce fichier est le seul dont tu as besoin pour reconstruire LoomiFlow AI from scratch.**
 > Passe-le à VSCode Copilot, Cursor, ou tout agent IA.
@@ -18,11 +16,11 @@
 4. [Structure des fichiers](#4-structure-des-fichiers)
 5. [Variables d'environnement](#5-variables-denvironnement)
 6. [Bootstrap from scratch](#6-bootstrap-from-scratch)
-7. [Modules Core — Code complet](#7-modules-core--code-complet)
+7. [Modules Core - Code complet](#7-modules-core--code-complet)
 8. [API Routes](#8-api-routes)
-9. [Pipeline de décision — Decision Flow](#9-pipeline-de-décision--decision-flow)
+9. [Pipeline de décision - Decision Flow](#9-pipeline-de-décision--decision-flow)
 10. [Visualisation Layer](#10-visualisation-layer)
-11. [SRE Layer — Résilience](#11-sre-layer--résilience)
+11. [SRE Layer - Résilience](#11-sre-layer--résilience)
 12. [Tests & Debug](#12-tests--debug)
 13. [Demo Script](#13-demo-script)
 14. [Proof of Capture](#14-proof-of-capture)
@@ -39,7 +37,7 @@
 ### Ce que LoomiFlow AI EST
 ✅ **"An AI-native orchestration & observability cockpit for commerce operations powered by Loomi Connect MCP"**
 
-### Track 6 — Cross-MCP Orchestration (Advanced)
+### Track 6 - Cross-MCP Orchestration (Advanced)
 - 3+ MCP surfaces utilisées simultanément
 - Read loop + Write loop confirmés (Paul Edwards, Bloomreach)
 - Données réelles via sandbox `silent-ukulele`
@@ -52,86 +50,86 @@
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                    LOOMIFLOW AI — FULL STACK ARCHITECTURE             ║
+║                    LOOMIFLOW AI - FULL STACK ARCHITECTURE             ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║                                                                       ║
 ║   EXTERNAL TRIGGERS                                                   ║
-║   ┌─────────────┐   ┌──────────────┐   ┌─────────────────────┐      ║
-║   │ PayPal      │   │ Demo Button  │   │ Load Test           │      ║
-║   │ Webhook     │   │ /api/simulate│   │ Simulator           │      ║
-║   └──────┬──────┘   └──────┬───────┘   └──────────┬──────────┘      ║
-║          │                 │                       │                  ║
-║          └─────────────────┴───────────────────────┘                 ║
-║                            │                                          ║
+║   ┌─────────────┐   ┌──────────────┐   ┌─────────────────────┐        ║
+║   │ PayPal      │   │ Demo Button  │   │ Load Test                 │  ║
+║   │ Webhook     │   │ /api/simulate│   │ Simulator                 │  ║
+║   └──────┬──────┘   └──────┬───────┘   └──────────┬──────────┘        ║
+║          │                 │                                       │  ║
+║          └─────────────────┴───────────────────────┘                  ║
+║                                                                    │  ║
 ║                            ▼                                          ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │                  COMMERCE EVENT NORMALIZER                     │ ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │                  COMMERCE EVENT NORMALIZER                     │  ║
 ║   │  payment_failed | cart_abandonment | fraud_detected | vip_at_risk│║
-║   └────────────────────────┬───────────────────────────────────────┘ ║
-║                            │                                          ║
+║   └────────────────────────┬───────────────────────────────────────┘  ║
+║                                                                    │  ║
 ║                            ▼                                          ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │              LOOMI CONNECT MCP — READ PHASE                    │ ║
-║   │  https://loomi-mcp-alpha.bloomreach.com/mcp (NO trailing /)    │ ║
-║   │                                                                │ ║
-║   │  get_customer_properties ──► tier, LTV, segments                │ ║
-║   │  get_customer_prediction_score ──► churn_risk, engage_score     │ ║
-║   │  list_customer_events ──► infer journey state & patterns        │ ║
-║   │  execute_analytics ──► funnel metrics, conversion rate          │ ║
-║   │  get_api_trigger ──► identify write-back scenario URL           │ ║
-║   └────────────────────────┬───────────────────────────────────────┘ ║
-║                            │ MCPCustomerContext                       ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │              LOOMI CONNECT MCP - READ PHASE                    │  ║
+║   │  https://loomi-mcp-alpha.bloomreach.com/mcp (NO trailing /)    │  ║
+║   │                                                                │  ║
+║   │  get_customer_properties --> tier, LTV, segments               │  ║
+║   │  get_customer_prediction_score --> churn_risk, engage_score    │  ║
+║   │  list_customer_events --> infer journey state & patterns       │  ║
+║   │  execute_analytics --> funnel metrics, conversion rate         │  ║
+║   │  get_api_trigger --> identify write-back scenario URL          │  ║
+║   └────────────────────────┬───────────────────────────────────────┘  ║
+║                                                                    │  ║
 ║                            ▼                                          ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │              MULTI-AGENT PARALLEL ENGINE                       │ ║
-║   │                                                                │ ║
-║   │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │ ║
-║   │  │ FRAUD AGENT  │  │REVENUE AGENT │  │   CX AGENT   │        │ ║
-║   │  │   w=0.62     │  │   w=0.23     │  │   w=0.15     │        │ ║
-║   │  │              │  │              │  │              │        │ ║
-║   │  │ fraudScore   │  │ revenueRisk  │  │ churnRisk    │        │ ║
-║   │  │ signals[]    │  │ customerLTV  │  │ friction     │        │ ║
-║   │  │ blockPayment │  │ discountRec  │  │ escalate     │        │ ║
-║   │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘        │ ║
-║   │         │                 │                   │                │ ║
-║   │         └─────────────────┴───────────────────┘                │ ║
-║   │                           │ Promise.all()                       │ ║
-║   └───────────────────────────┼────────────────────────────────────┘ ║
-║                               │                                       ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │              MULTI-AGENT PARALLEL ENGINE                       │  ║
+║   │                                                                │  ║
+║   │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │    ║
+║   │  │ FRAUD AGENT  │  │REVENUE AGENT │  │   CX AGENT   │          │  ║
+║   │  │   w=0.62     │  │   w=0.23     │  │   w=0.15     │          │  ║
+║   │  │              │  │              │  │              │          │  ║
+║   │  │ fraudScore   │  │ revenueRisk  │  │ churnRisk    │          │  ║
+║   │  │ signals[]    │  │ customerLTV  │  │ friction     │          │  ║
+║   │  │ blockPayment │  │ discountRec  │  │ escalate     │          │  ║
+║   │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘        │    ║
+║   │         │                 │                   │                │  ║
+║   │         └─────────────────┴───────────────────┘                │  ║
+║   │                           │ Promise.all()                      │  ║
+║   └───────────────────────────┼────────────────────────────────────┘  ║
+║                                                                    │  ║
 ║                               ▼                                       ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │                    ORCHESTRATOR ENGINE                         │ ║
-║   │                                                                │ ║
-║   │  RULE 1: fraud>0.85 + ltv<500  ──────────────► BLOCK          │ ║
-║   │  RULE 2: fraud>0.60 + ltv>1000 ──────────────► STEP_UP_AUTH   │ ║
-║   │  RULE 3: fraud<0.40 + revenue>200 ────────────► ALLOW         │ ║
-║   │  RULE 4: else ────────────────────────────────► HOLD          │ ║
-║   │                                                                │ ║
-║   │  confidence = 0.62×fraud.conf + 0.23×rev.conf + 0.15×cx.conf  │ ║
-║   └────────────────────────────────────────────────────────────────┘ ║
-║                               │                                       ║
-║          ┌────────────────────┼─────────────────────┐                ║
-║          │                   │                      │                 ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │                    ORCHESTRATOR ENGINE                         │  ║
+║   │                                                                │  ║
+║   │  RULE 1: fraud>0.85 + ltv<500  ────────────--> BLOCK           │  ║
+║   │  RULE 2: fraud>0.60 + ltv>1000 ────────────--> STEP_UP_AUTH    │  ║
+║   │  RULE 3: fraud<0.40 + revenue>200 ──────────--> ALLOW          │  ║
+║   │  RULE 4: else ──────────────────────────────--> HOLD           │  ║
+║   │                                                                │  ║
+║   │  confidence = 0.62*fraud.conf + 0.23*rev.conf + 0.15*cx.conf   │  ║
+║   └────────────────────────────────────────────────────────────────┘  ║
+║                                                                    │  ║
+║          ┌────────────────────┼─────────────────────┐                 ║
+║          │                   │                                     │  ║
 ║          ▼                   ▼                      ▼                 ║
-║   [OBSERVABILITY]    [MEMORY GRAPH]       [INCIDENT RECONSTRUCTOR]   ║
-║   tokens, cost,      influence weights,   DAG, root-cause,           ║
-║   latency breakdown  top drivers          narrative, severity/100    ║
-║          │                   │                      │                 ║
-║          └────────────────────┴─────────────────────┘                ║
-║                               │                                       ║
+║   [OBSERVABILITY]    [MEMORY GRAPH]       [INCIDENT RECONSTRUCTOR]    ║
+║   tokens, cost,      influence weights,   DAG, root-cause,            ║
+║   latency breakdown  top drivers          narrative, severity/100     ║
+║          │                   │                                     │  ║
+║          └────────────────────┴─────────────────────┘                 ║
+║                                                                    │  ║
 ║                               ▼                                       ║
-║   ┌────────────────────────────────────────────────────────────────┐ ║
-║   │              BLOOMREACH WRITE PHASE                            │ ║
-║   │  (confirmed by Paul Edwards @ Bloomreach)                      │ ║
-║   │                                                                │ ║
-║   │  1. updateCustomerProperty ──► recovery_initiated = true        │ ║
-║   │  2. trackCustomerEvent ──────► fire Bloomreach scenario         │ ║
-║   │  3. Bloomreach scenario ─────► Mailgun → customer email         │ ║
-║   └────────────────────────────────────────────────────────────────┘ ║
+║   ┌────────────────────────────────────────────────────────────────┐  ║
+║   │              BLOOMREACH WRITE PHASE                            │  ║
+║   │  (confirmed by Paul Edwards @ Bloomreach)                      │  ║
+║   │                                                                │  ║
+║   │  1. updateCustomerProperty --> recovery_initiated = true       │  ║
+║   │  2. trackCustomerEvent ────--> fire Bloomreach scenario        │  ║
+║   │  3. Bloomreach scenario ───--> Mailgun → customer email        │  ║
+║   └────────────────────────────────────────────────────────────────┘  ║
 ║                                                                       ║
-║   REAL-TIME FEEDBACK LOOP                                            ║
-║   WebSocket (ws://localhost:8080) ──► Next.js useCockpit hook        ║
-║   Firebase Realtime DB (fallback) ──► cross-tab sync                 ║
+║   REAL-TIME FEEDBACK LOOP                                             ║
+║   WebSocket (ws://localhost:8080) --> Next.js useCockpit hook         ║
+║   Firebase Realtime DB (fallback) --> cross-tab sync                  ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -148,7 +146,7 @@ T   1000  │ALLOW │ALLOW │ HOLD │ STEP │ STEP │ BLOCK│
 V         ├──────┼──────┼──────┼──────┼──────┼──────┤
   > 1000  │ALLOW │ALLOW │ALLOW │ STEP │ STEP │ STEP │
            └──────┴──────┴──────┴──────┴──────┴──────┘
-          STEP = STEP_UP_AUTH (VIP protection pattern — Peter Centgraf)
+          STEP = STEP_UP_AUTH (VIP protection pattern - Peter Centgraf)
 ```
 
 ### 2.3 SRE Traffic Split
@@ -169,10 +167,10 @@ LIVE TRAFFIC ALLOCATION
 ### 2.4 Memory Graph (AI Explainability)
 
 ```
-DECISION MEMORY GRAPH — Influence Weights
+DECISION MEMORY GRAPH - Influence Weights
 ═══════════════════════════════════════════════
 
-  [obs_event] ──0.85──► [mcp_get_customer_properties]
+  [obs_event] ──0.85--> [mcp_get_customer_properties]
                 │                   │
                 │                   ▼
                 │         [state_ltv: €1250]
@@ -182,9 +180,9 @@ DECISION MEMORY GRAPH — Influence Weights
                 │         [agent_revenue: ALLOW]
                 │                   │
                 │              0.23 │
-                └──────────────────►┤
+                └────────────────-->┤
                                     ▼
-  [mcp_get_prediction] ──1.0──► [state_churn: high]
+  [mcp_get_prediction] ──1.0--> [state_churn: high]
                                     │
                                0.90 │
                                     ▼
@@ -192,7 +190,7 @@ DECISION MEMORY GRAPH — Influence Weights
                                     │
                                0.15 │
                                     ▼
-  [state_fraud_score:0.72] ────────►[DECISION: STEP_UP_AUTH]
+  [state_fraud_score:0.72] ──────-->[DECISION: STEP_UP_AUTH]
            │                        ▲
       0.95 │                        │
            ▼                        │
@@ -238,7 +236,7 @@ External APIs:
   - Firebase           → Realtime DB (optional, WS fallback)
 
 Visualization:
-  - WebGL (GLSL shaders) particle system — 3000+ points
+  - WebGL (GLSL shaders) particle system - 3000+ points
   - Canvas2D fallback
   - Web Audio API (zero dependencies)
 ```
@@ -342,9 +340,9 @@ loomiflow/
 │   ├── TRACK6_ALIGNMENT.md       ← Track 6 criteria mapping
 │   └── MCP_INTEGRATION.md        ← MCP integration notes
 │
-├── local-proofs/                 ← 🔒 LOCAL ONLY — proof files
-├── local-prints/                 ← 🔒 LOCAL ONLY — console logs
-├── .env.local                    ← 🔒 LOCAL ONLY — credentials
+├── local-proofs/                 ← 🔒 LOCAL ONLY - proof files
+├── local-prints/                 ← 🔒 LOCAL ONLY - console logs
+├── .env.local                    ← 🔒 LOCAL ONLY - credentials
 ├── .gitignore                    ← covers local-* and .env.local
 ├── next.config.js
 ├── tailwind.config.ts
@@ -356,11 +354,11 @@ loomiflow/
 
 ## 5. Variables d'Environnement
 
-### `.env.local` — Template complet
+### `.env.local` - Template complet
 
 ```bash
 # ══════════════════════════════════════════════════════
-# LOOMIFLOW AI — ENVIRONMENT — NE PAS COMMITTER
+# LOOMIFLOW AI - ENVIRONMENT - NE PAS COMMITTER
 # ══════════════════════════════════════════════════════
 
 # ── BLOOMREACH ENGAGEMENT ─────────────────────────────
@@ -388,7 +386,7 @@ PAYPAL_PERSONAL_EMAIL=sb-bjh9x51322925@personal.example.com
 PAYPAL_BUSINESS_ACCOUNT_ID=JSSMJG3ZP668G
 PAYPAL_BUSINESS_EMAIL=sb-qa43lx51322931@business.example.com
 
-# ── OPENAI (optionnel — mock mode disponible) ─────────
+# ── OPENAI (optionnel - mock mode disponible) ─────────
 OPENAI_API_KEY=             # Laisser vide → USE_MOCK_AGENTS=true automatique
 
 # ── APP ───────────────────────────────────────────────
@@ -398,7 +396,7 @@ NODE_ENV=development
 USE_GCP_PUBSUB=false
 USE_MOCK_AGENTS=true         # false = appels OpenAI réels
 
-# ── FIREBASE (optionnel — fallback WS) ────────────────
+# ── FIREBASE (optionnel - fallback WS) ────────────────
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_DATABASE_URL=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -419,7 +417,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 
 ## 6. Bootstrap from Scratch
 
-### Étape 1 — Cloner et installer
+### Étape 1 - Cloner et installer
 
 ```bash
 git clone <repo-url> loomiflow
@@ -427,14 +425,14 @@ cd loomiflow
 npm install
 ```
 
-### Étape 2 — Configurer l'environnement
+### Étape 2 - Configurer l'environnement
 
 ```bash
 cp .env.example .env.local
 # Editer .env.local avec les credentials ci-dessus
 ```
 
-### Étape 3 — Vérifier toutes les connexions
+### Étape 3 - Vérifier toutes les connexions
 
 ```bash
 npm run test:connections
@@ -446,14 +444,14 @@ npm run test:connections
 # ✅ PayPal token obtained in 432ms
 ```
 
-### Étape 4 — Lancer le dev server
+### Étape 4 - Lancer le dev server
 
 ```bash
 npm run dev
 # Puis ouvrir: http://localhost:3000/cockpit
 ```
 
-### Étape 5 — Tester les agents
+### Étape 5 - Tester les agents
 
 ```bash
 npx tsx scripts/test-agents.ts
@@ -461,7 +459,7 @@ npx tsx scripts/test-pipeline.ts
 npx tsx scripts/test-observability.ts
 ```
 
-### Étape 6 — Configurer MCP pour Claude
+### Étape 6 - Configurer MCP pour Claude
 
 ```bash
 # ✅ CORRECT (mcp-remote, sans trailing slash)
@@ -471,7 +469,7 @@ claude mcp add loomi-mcp -- npx -y mcp-remote https://loomi-mcp-alpha.bloomreach
 # claude mcp add loomi-mcp --transport http https://...
 ```
 
-### Étape 7 — Trigger de démo
+### Étape 7 - Trigger de démo
 
 ```bash
 # Via curl:
@@ -486,7 +484,7 @@ curl -X POST http://localhost:3000/api/simulate \
 
 ---
 
-## 7. Modules Core — Code complet
+## 7. Modules Core - Code complet
 
 ### 7.1 Types centraux (core/shared/types.ts)
 
@@ -522,19 +520,19 @@ const WEIGHTS = { fraud: 0.62, revenue: 0.23, cx: 0.15 }
 ### 7.2 Orchestrator Rules (core/agents/orchestrator.ts)
 
 ```typescript
-// Règle 1 — Safety first
+// Règle 1 - Safety first
 if (fraud.fraudScore > 0.85 && revenue.customerLTV < 500)
   → BLOCK
 
-// Règle 2 — VIP protection (Peter Centgraf pattern)
+// Règle 2 - VIP protection (Peter Centgraf pattern)
 if (fraud.fraudScore > 0.60 && revenue.customerLTV > 1000)
   → STEP_UP_AUTH
 
-// Règle 3 — Revenue recovery
+// Règle 3 - Revenue recovery
 if (fraud.fraudScore < 0.40 && revenue.revenueAtRisk > 200)
   → ALLOW
 
-// Règle 4 — Mixed signals
+// Règle 4 - Mixed signals
 else → HOLD
 
 // Confidence
@@ -617,8 +615,8 @@ playForEvent("ROLLBACK")         // → thud grave
 |---|---|---|---|
 | `/api/decision` | POST | `CommerceEvent` | `{ success, trace: DecisionTrace }` |
 | `/api/simulate` | POST | `{ scenario: string }` | `{ success, scenario, trace }` |
-| `/api/health` | GET | — | `{ mcp, paypal, bloomreach, overall }` |
-| `/api/mcp-test` | GET | — | `{ tools: string[], count }` |
+| `/api/health` | GET | - | `{ mcp, paypal, bloomreach, overall }` |
+| `/api/mcp-test` | GET | - | `{ tools: string[], count }` |
 | `/api/paypal-webhook` | POST | PayPal payload | `{ processed }` |
 
 ### Print statements attendus dans la console serveur
@@ -627,14 +625,14 @@ playForEvent("ROLLBACK")         // → thud grave
 [PIPELINE] Starting for event: evt_xxx type=payment_failed
 [ORCHESTRATOR][START] {"fraud":"BLOCK","revenue":"ALLOW","cx":"HOLD"}
 [ORCHESTRATOR][DECISION] {"final":"STEP_UP_AUTH","confidence":0.87}
-[PIPELINE] Complete in 1234ms — Decision: STEP_UP_AUTH (87% confidence)
+[PIPELINE] Complete in 1234ms - Decision: STEP_UP_AUTH (87% confidence)
 [BLOOMREACH_WRITE] updateCustomerProperty → cust_xxx
 [BLOOMREACH_WRITE] trackCustomerEvent → payment_recovery_triggered
 ```
 
 ---
 
-## 9. Pipeline de décision — Decision Flow
+## 9. Pipeline de décision - Decision Flow
 
 ```
 PIPELINE TIMELINE (exemple VIP Payment Failure)
@@ -693,7 +691,7 @@ Observability: { bottleneck: "llm", cost: "$0.0001", anomalies: [] }
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  AGENT ARENA — Live adversarial force fields                 │
+│  AGENT ARENA - Live adversarial force fields                 │
 │                                                              │
 │     ◉ FRAUD (w=0.62)    ◉ REVENUE (w=0.23)                  │
 │      72% intensity       45% intensity                       │
@@ -713,20 +711,20 @@ Observability: { bottleneck: "llm", cost: "$0.0001", anomalies: [] }
 MCP TRACE GRAPH
 ───────────────────────────────────────────────
 [Event] payment_failed
-   ├─► [MCP] get_customer_properties   340ms ✅
-   │       └─► tier: VIP, LTV: €1250
-   ├─► [MCP] get_customer_prediction_score 480ms ✅
-   │       └─► churnRisk: HIGH, score: 0.78
-   ├─► [FRAUD AGENT]  score: 0.72  → STEP_UP_AUTH
-   ├─► [REVENUE AGENT] ltv: 1250  → ALLOW
-   ├─► [CX AGENT]  churn: high    → STEP_UP_AUTH
-   └─► [ORCHESTRATOR] → STEP_UP_AUTH (87% conf)
-           └─► [WRITE] trackCustomerEvent ✅
+   ├-> [MCP] get_customer_properties   340ms ✅
+   │       └-> tier: VIP, LTV: €1250
+   ├-> [MCP] get_customer_prediction_score 480ms ✅
+   │       └-> churnRisk: HIGH, score: 0.78
+   ├-> [FRAUD AGENT]  score: 0.72  → STEP_UP_AUTH
+   ├-> [REVENUE AGENT] ltv: 1250  → ALLOW
+   ├-> [CX AGENT]  churn: high    → STEP_UP_AUTH
+   └-> [ORCHESTRATOR] → STEP_UP_AUTH (87% conf)
+           └-> [WRITE] trackCustomerEvent ✅
 ```
 
 ---
 
-## 11. SRE Layer — Résilience
+## 11. SRE Layer - Résilience
 
 ### Modules SRE
 
@@ -734,7 +732,7 @@ MCP TRACE GRAPH
 // core/sre/trafficController.ts
 updateTrafficSplit({ prod: 85, canary: 10, shadow: 5 })
 
-// core/sre/rollback.ts — déclenchement auto
+// core/sre/rollback.ts - déclenchement auto
 if (fraud_rate > 0.30 || error_rate > 0.05) {
   rollbackCanary()  // → prod: 100, canary: 0, shadow: 0
   logToSRE("CANARY_ROLLBACK", { reason, severity })
@@ -807,28 +805,28 @@ npx -y mcp-remote https://loomi-mcp-alpha.bloomreach.com/mcp
 ## 13. Demo Script (5 minutes)
 
 ```
-00:00 — Ouvrir /cockpit → "Voici ACOA, le cockpit de Commerce Ops"
-00:30 — Cliquer "🚨 VIP Payment Failure"
+00:00 - Ouvrir /cockpit → "Voici ACOA, le cockpit de Commerce Ops"
+00:30 - Cliquer "🚨 VIP Payment Failure"
          → Montrer: 3 agents s'allument en parallèle
          → Montrer: STEP_UP_AUTH avec 87% confidence
          → Montrer: Audio alert (🔊)
-01:30 — Ouvrir Decision Debugger → tab MEMORY
-         → "Voici comment l'IA a décidé — influence weights"
+01:30 - Ouvrir Decision Debugger → tab MEMORY
+         → "Voici comment l'IA a décidé - influence weights"
          → "Le fraud score à 72% pèse 62%, le LTV €1250 pèse 23%"
-02:00 — Aller sur ARENA view
+02:00 - Aller sur ARENA view
          → "Les 3 agents s'affrontent en temps réel"
          → Cliquer "⚡ Fraud Storm" → Arena s'emballe
-02:30 — Aller sur TRACE view
+02:30 - Aller sur TRACE view
          → "Voici l'équivalent LangSmith mais pour du commerce"
          → "Chaque MCP tool call tracé avec latence"
-03:00 — Aller sur TRAFFIC view
+03:00 - Aller sur TRAFFIC view
          → "SRE layer: 85% prod, 10% canary, 5% shadow"
          → "Rollback auto si fraud rate > 30%"
-03:30 — Montrer ObservabilityMiniPanel
-         → "Coût par décision: $0.0001 — scalable à 1M événements/jour"
-04:00 — "Read loop: 6 MCP tools → Write loop: trackCustomerEvent → Mailgun"
-04:30 — "C'est ça Track 6: 3 MCP surfaces + orchestration + write-back complet"
-05:00 — Questions
+03:30 - Montrer ObservabilityMiniPanel
+         → "Coût par décision: $0.0001 - scalable à 1M événements/jour"
+04:00 - "Read loop: 6 MCP tools → Write loop: trackCustomerEvent → Mailgun"
+04:30 - "C'est ça Track 6: 3 MCP surfaces + orchestration + write-back complet"
+05:00 - Questions
 ```
 
 ---
@@ -840,7 +838,7 @@ npx -y mcp-remote https://loomi-mcp-alpha.bloomreach.com/mcp
 | # | Item | Source | Statut |
 |---|---|---|---|
 | 1 | Architecture complète ASCII | Parts 1-6 + E1-E7 | ✅ §2 |
-| 2 | Decision matrix fraud×LTV | Parts 3+E4 | ✅ §2.2 |
+| 2 | Decision matrix fraud*LTV | Parts 3+E4 | ✅ §2.2 |
 | 3 | Consensus weights 62/23/15 | E6 | ✅ §2.1 |
 | 4 | MCP URL sans trailing slash | E6 (Saurav @here) | ✅ §5+§12 |
 | 5 | OAuth2 PKCE via mcp-remote | E7 (Ard+Dima) | ✅ §6 |
@@ -869,5 +867,5 @@ npx -y mcp-remote https://loomi-mcp-alpha.bloomreach.com/mcp
 
 ---
 
-*LOOMIFLOW AI V2 — MASTER BUILD GUIDE — May 30, 2026*  
+*LOOMIFLOW AI V2 - MASTER BUILD GUIDE - May 30, 2026*  
 *loomiflow/MASTER_BUILD_GUIDE.md*
