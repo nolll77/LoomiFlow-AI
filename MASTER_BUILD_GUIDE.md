@@ -1,11 +1,11 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║   LOOMIFLOW AI — MASTER BUILD GUIDE V2                              ║
+# ║   LOOMIFLOW AI — MASTER BUILD GUIDE V2                               ║
 # ║   Loomi Connect AI Hackathon 2026 | Track 6: Cross-MCP Orchestration ║
-# ║   ACOA — Autonomous Commerce Operations Agent                       ║
+# ║   ACOA — Autonomous Commerce Operations Agent                        ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 
 > **Ce fichier est le seul dont tu as besoin pour reconstruire LoomiFlow AI from scratch.**
-> Passe-le à Antigravity, VSCode Copilot, Cursor, ou tout agent IA.
+> Passe-le à VSCode Copilot, Cursor, ou tout agent IA.
 > Il contient : architecture, code, credentials pattern, tests, debug, visualisations.
 
 ---
@@ -124,9 +124,9 @@
 ║   │              BLOOMREACH WRITE PHASE                            │ ║
 ║   │  (confirmed by Paul Edwards @ Bloomreach)                      │ ║
 ║   │                                                                │ ║
-║   │  1. updateCustomerProperty ──► recovery_initiated = true       │ ║
-║   │  2. trackCustomerEvent ──────► fire Bloomreach scenario        │ ║
-║   │  3. Bloomreach scenario ─────► Mailgun → customer email        │ ║
+║   │  1. updateCustomerProperty ──► recovery_initiated = true        │ ║
+║   │  2. trackCustomerEvent ──────► fire Bloomreach scenario         │ ║
+║   │  3. Bloomreach scenario ─────► Mailgun → customer email         │ ║
 ║   └────────────────────────────────────────────────────────────────┘ ║
 ║                                                                       ║
 ║   REAL-TIME FEEDBACK LOOP                                            ║
@@ -461,7 +461,7 @@ npx tsx scripts/test-pipeline.ts
 npx tsx scripts/test-observability.ts
 ```
 
-### Étape 6 — Configurer MCP pour Claude/Antigravity
+### Étape 6 — Configurer MCP pour Claude
 
 ```bash
 # ✅ CORRECT (mcp-remote, sans trailing slash)
@@ -870,4 +870,4 @@ npx -y mcp-remote https://loomi-mcp-alpha.bloomreach.com/mcp
 ---
 
 *LOOMIFLOW AI V2 — MASTER BUILD GUIDE — May 30, 2026*  
-*Généré par Antigravity Agent — loomiflow/MASTER_BUILD_GUIDE.md*
+*loomiflow/MASTER_BUILD_GUIDE.md*
