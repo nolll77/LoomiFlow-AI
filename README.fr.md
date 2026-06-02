@@ -120,7 +120,7 @@ Pour tester et présenter l'intelligence de notre moteur, nous avons rédigé 6 
 ## 📚 Documentation
 
 - [🇬🇧 Lire le README en Anglais](./README.md)
-- [SANDBOX_ROBUSTNESS_REPORT.md](./SANDBOX_ROBUSTNESS_REPORT.md) — Rapport de diagnostic et robustesse face aux limites de la Sandbox.
+- [VERIFICATIONS_CRITIQUES.md](./VERIFICATIONS_CRITIQUES.md) — Liste de vérifications critiques pour la soumission et diagnostics de robustesse.
 - [COUNCILS_GOVERNANCE_FR.md](./docs/COUNCILS_GOVERNANCE_FR.md) — Plongez dans la gouvernance des Councils, le calcul de l'utilité et les consensus.
 - [V4_STRUCTURAL_MIGRATION_FR.md](./docs/V4_STRUCTURAL_MIGRATION_FR.md) — Plan détaillé pour migrer proprement de la V3 vers l'architecture V4 native.
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — Schémas complets ASCII et cycles du pipeline.
