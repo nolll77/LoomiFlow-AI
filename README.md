@@ -119,6 +119,7 @@ We have created 6 interactive, detailed scenarios to test and showcase the pipel
 ## 📚 Documentation
 
 - [🇫🇷 Lisez le README en Français](./README.fr.md)
+- [SANDBOX_ROBUSTNESS_REPORT.md](./SANDBOX_ROBUSTNESS_REPORT.md) — Sandbox environment diagnostic & robustness details
 - [COUNCILS_GOVERNANCE_EN.md](./docs/COUNCILS_GOVERNANCE_EN.md) — Deep-dive into Councils, utility math, and consensus
 - [V4_STRUCTURAL_MIGRATION_EN.md](./docs/V4_STRUCTURAL_MIGRATION_EN.md) — Blueprint for clean V3 to V4 native codebase migration
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — Full ASCII diagrams + pipeline flows
@@ -126,6 +127,7 @@ We have created 6 interactive, detailed scenarios to test and showcase the pipel
 - [MCP_GUIDE.md](./docs/MCP_GUIDE.md) — MCP tools + auth + write patterns
 - [MASTER_BUILD_GUIDE.md](./MASTER_BUILD_GUIDE.md) — Complete from-scratch build guide
 - **Sub-READMEs**: [`core/agents`](./core/agents/README.md), [`core/sre`](./core/sre/README.md), [`lib`](./lib/README.md), [`server`](./server/README.md)
+
 
 
 ---
