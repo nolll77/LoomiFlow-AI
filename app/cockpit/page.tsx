@@ -24,15 +24,18 @@ import { LearningPanel } from "@/components/cockpit/LearningPanel"
 import { ConfidenceHeatmap } from "@/components/cockpit/ConfidenceHeatmap"
 import type { BusinessImpactSummary } from "@/core/orchestration/types"
 import type { LearningInsights } from "@/core/agents/learningAgent"
-type ViewMode = "cockpit" | "v4" | "arena" | "trace" | "traffic" | "memory"
+import SequenceDiagramPanel from "@/components/visualization/SequenceDiagramPanel"
+
+type ViewMode = "cockpit" | "v4" | "arena" | "trace" | "traffic" | "memory" | "sequence"
 
 const VIEW_LABELS: Record<ViewMode, string> = {
-  cockpit: "Cockpit",
-  v4:      "V4 Brain",
-  arena:   "Arena",
-  trace:   "Trace",
-  traffic: "Traffic",
-  memory:  "Memory",
+  cockpit:  "Cockpit",
+  v4:       "V4 Brain",
+  arena:    "Arena",
+  trace:    "Trace",
+  traffic:  "Traffic",
+  memory:   "Memory",
+  sequence: "Sequence",
 }
 
 export default function CockpitPage() {
@@ -80,7 +83,7 @@ export default function CockpitPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            {(["cockpit", "v4", "arena", "trace", "traffic", "memory"] as ViewMode[]).map(mode => (
+            {(["cockpit", "v4", "arena", "trace", "traffic", "memory", "sequence"] as ViewMode[]).map(mode => (
               <button key={mode} onClick={() => setViewMode(mode)}
                 className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${viewMode === mode ? "border-slate-900 bg-slate-950 text-white shadow-lg shadow-slate-200/40" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"}`}>
                 {VIEW_LABELS[mode]}
@@ -201,6 +204,18 @@ export default function CockpitPage() {
             <>
               <div className="col-span-12 xl:col-span-8">
                 <MemoryGraphVisualizer decision={state.lastDecision} />
+              </div>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                <DecisionDebugger decision={state.lastDecision} />
+                <ObservabilityMiniPanel decision={state.lastDecision} />
+              </div>
+            </>
+          )}
+
+          {viewMode === "sequence" && (
+            <>
+              <div className="col-span-12 xl:col-span-8">
+                <SequenceDiagramPanel lastDecision={state.lastDecision} />
               </div>
               <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
                 <DecisionDebugger decision={state.lastDecision} />

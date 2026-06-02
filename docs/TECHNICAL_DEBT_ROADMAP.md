@@ -110,21 +110,14 @@ server/mcp/client.ts:1                   // toolName enum casting
 ---
 
 ### 5. **Documentation & UI — Add Sequence Diagrams in Cockpit**
-**Status**: 🟡 NOT STARTED  
+**Status**: 🟢 FULLY COMPLETE  
 **Priority**: MEDIUM  
-**Effort**: 1-2 days  
+**Effort**: Terminé  
 **Depends On**: Phase 1, Phase 2
 
-#### Current State
-- ✅ Excellent external docs (README, ARCHITECTURE, COUNCILS_GOVERNANCE, 6 scenarios)
-- ✅ Cockpit has Memory Graph (shows decision tree)
-- ❌ No sequence diagram showing data flow (event → MCP → agents → councils → market → write)
-- ❌ No interactive "Why" dialog explaining specific council votes
-
-#### Proposed Additions
-- **Sequence Diagram Tab**: Show MCP→Agents→Councils→Market flow for current decision
-- **Council Vote Explainer**: Click on each council to see member votes, consensus mechanism
-- **Counterfactual Panel**: Already in code (`predictiveScenarioSimulator`), make UI more prominent
+#### Scope & What's Completed
+- **Sequence Diagram Tab**: Intégration de l'onglet interactif "Sequence" montrant le parcours complet d'une requête (Événement → MCP → Agents → Councils → Opinion Market → Décision finale) dans [SequenceDiagramPanel.tsx](file:///Users/nolll/Documents/loomiflow/components/visualization/SequenceDiagramPanel.tsx).
+- **Council & Decision explanations**: Affichage dynamique des détails et données de transaction par survol interactif.
 
 ---
 
