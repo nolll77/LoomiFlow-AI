@@ -121,16 +121,20 @@ export interface DecisionTrace {
   executiveSummary: string
   learningInsights: LearningInsights
 
-  // ── Observabilité ─────────────────────────────────────────
+  // ── Observabilité & Évolutions V4 ─────────────────────────
   timeline:         TraceEntry[]
   mcpContextSources: string[]
   observability?:   ObservabilityEnvelope
   memoryGraph?:     AgentMemoryGraph
   counterfactuals?: Counterfactual[]
+  narrative?:       string                   // ← Commerce Narrative Engine
+  contextQuality?:  ContextQualityReport     // ← MCP Context Quality Score
+  incidentReconstruction?: unknown
 
   // ── Intégrations ──────────────────────────────────────────
   paypalData?:    PayPalEventData
   writeActions?:  WriteActionResult[]
+
 
   // ── SUPPRIMÉ ──────────────────────────────────────────────
   // agents: { fraud, revenue, cx }         ← remplacé par councils
@@ -377,6 +381,8 @@ marketDecision: MarketDecision   // déjà typé, contient tout
 // marketDecision.winningCouncil
 // marketDecision.utilityScores  ← remplace consensusWeights
 // marketDecision.marketNarrative ← remplace reasoning[0]
+// marketDecision.coalitionType    ← NOUVEAU : UNANIMOUS | MAJORITY | SPLIT | VETO
+
 ```
 
 #### 3b. Adapter `AgentGrid` — barre de consensus
