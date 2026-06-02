@@ -19,6 +19,7 @@ export interface CustomerState {
   segments: string[]
   journeyState: "browsing" | "evaluating" | "converting" | "churning" | "dormant"
   behavioralFingerprint: BehavioralFingerprint
+  cookieId?: string | null     // cookie unique (safe-parsed suite au bug ids.cookie multi-device)
 }
 
 // ─── REVENUE ──────────────────────────────────────────────────

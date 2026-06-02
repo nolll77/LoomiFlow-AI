@@ -18,7 +18,9 @@ Ce document sert de grand livre de diagnostics et de vérifications pour valider
 *   **Points vérifiés :**
     *   Le proxy `mcp-remote` configuré via `npm run setup:mcp` gère correctement l'authentification OAuth pour l'URL principale `https://loomi-mcp-alpha.bloomreach.com/mcp` (Données clients & profils).
     *   Une deuxième URL MCP pour les outils de conversation (Shopping / Clarity Search) est disponible et configurée : `https://uqa.api.exponea.dev/cocoaas/public/api/clarity-search/v1/mcp/019d4917-3c76-7479-9f00-06c620b231bb`. Elle permet au `Personal Shopper Agent` d'enrichir ses recommandations grâce à l'outil `clarity_search`.
+    *   **Protection Bug Multi-Device (`ids.cookie`) :** Implémentation d'une fonction défensive `safeParseCookie` dans `stateBuilder.ts` pour empêcher tout plantage de validation si `ids.cookie` est retourné sous forme de tableau (cas multi-device rapporté par Tomasz) au lieu d'une chaîne.
     *   Les 5 outils MCP (`get_customer_properties`, `get_customer_prediction_score`, etc.) retournent leurs structures en mode dégradé gracieux (Context Quality Score) si les serveurs MCP ne répondent pas.
+
 
 
 ---

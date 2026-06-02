@@ -30,6 +30,13 @@ function selectMCPTools(eventType: string): string[] {
   return MCP_TOOL_MAP[eventType] ?? ["get_customer_profile", "get_fraud_signals"]
 }
 
+// Protection contre le bug ids.cookie sur les profils multi-device ( Tomasz Kuczmarski )
+function safeParseCookie(ids: any): string | null {
+  if (!ids?.cookie) return null
+  if (Array.isArray(ids.cookie)) return ids.cookie[0] ?? null
+  return ids.cookie
+}
+
 // ─── STATE BUILDERS ───────────────────────────────────────────
 
 function buildCustomerState(
@@ -42,6 +49,10 @@ function buildCustomerState(
     rawTier === "VIP" ? "VIP" :
     rawTier === "premium" ? "PREMIUM" :
     ltv > 5000 ? "VIP" : ltv > 1000 ? "PREMIUM" : ltv > 0 ? "STANDARD" : "NEW"
+
+  // Extraction sécurisée des cookies
+  const rawIds = (ctx as any)?.ids ?? (ctx as any)?.properties?.ids
+  const cookieId = safeParseCookie(rawIds)
 
   return {
     customerId:          ctx?.customerId ?? "unknown",
@@ -56,6 +67,7 @@ function buildCustomerState(
     segments:            ctx?.segmentIds ?? [],
     journeyState:        fingerprint.journeyState ?? "browsing",
     behavioralFingerprint: fingerprint,
+    cookieId,
   }
 }
 
