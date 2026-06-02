@@ -171,6 +171,10 @@ LoomiFlow V4 intègre et documente **deux URLs MCP distinctes** pour ses agents 
     *   *Rôle :* Permet d'enrichir le `Personal Shopper Agent` avec des requêtes de recherche produits réelles via l'outil `clarity_search`.
     *   *Variable d'env :* `MCP_CONVERSATION_URL`
 
+3.  **Dépôt de référence Google ADK (Bloomreach) :**
+    *   *Lien :* [bloomreach/loomi-alpha-mcp-google-adk](https://github.com/bloomreach/loomi-alpha-mcp-google-adk)
+    *   *Utilité :* Contient l'implémentation de référence du Google ADK avec OAuth. Utile pour lancer le MCP Inspector en local et tester manuellement les outils Bloomreach.
+
 ---
 
 ## 9. Tolérance aux Limites d'API REST (Erreur 403 / "No limit set")

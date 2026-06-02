@@ -20,6 +20,7 @@ This document serves as the central register for diagnostics, verifications, and
     *   A second MCP URL for conversation tools (Shopping / Clarity Search) is configured and documented: `https://uqa.api.exponea.dev/cocoaas/public/api/clarity-search/v1/mcp/019d4917-3c76-7479-9f00-06c620b231bb`. This enables the `Personal Shopper Agent` to query products using the `clarity_search` tool.
     *   **Multi-Device Cookie Bug Mitigation (`ids.cookie`)**: Added a defensive `safeParseCookie` filter in `stateBuilder.ts` to prevent validation or engine failures when `ids.cookie` is parsed as an array (reported Tomasz multi-device edge case) instead of a single string.
     *   If remote MCP servers fail, the `Context Quality Scorer` degrades the context score (Grades A-F) and dynamically adjusts council weights, preventing blind automation errors.
+    *   **Manual Testing & MCP Inspector:** Reference to the official [bloomreach/loomi-alpha-mcp-google-adk](https://github.com/bloomreach/loomi-alpha-mcp-google-adk) repository is integrated for launching the local MCP Inspector with functioning OAuth configuration if needed for manual tool validation.
 
 
 
