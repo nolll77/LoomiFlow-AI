@@ -3,11 +3,11 @@ import { HeartbeatState } from "@/core/shared/types"
 
 export function computeHeartbeat(events: any[]): number {
   const now = Date.now()
-  const recent = events.filter(e => now - e.timestamp < 10_000)
+  const recent = events.filter(e => e && typeof e.timestamp === "number" && now - e.timestamp < 10_000)
   const score =
     recent.length +
-    recent.filter(e => e.fraudScore > 0.6 || e.lastDecision?.severity === "high").length * 2 +
-    recent.filter(e => e.fraudScore > 0.8 || e.lastDecision?.severity === "critical").length * 4
+    recent.filter(e => (e.fraudScore ?? 0) > 0.6 || e.lastDecision?.severity === "high").length * 2 +
+    recent.filter(e => (e.fraudScore ?? 0) > 0.8 || e.lastDecision?.severity === "critical").length * 4
   return Math.min(score / 10, 1)
 }
 

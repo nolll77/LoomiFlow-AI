@@ -7,6 +7,7 @@ import type { HeatmapRow } from "@/lib/confidenceHeatmap"
 import { computeCommercePulse } from "@/lib/commercePulse"
 import type { CommercePulse } from "@/lib/commercePulse"
 import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
+import { DEMO_SCENARIOS } from "@/lib/mockEvents"
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8080"
 const MAX_EVENTS = 50
@@ -136,7 +137,7 @@ export function useCockpit() {
       if (!reader) return
 
       const decoder = new TextDecoder()
-      let traceEvent: any = null
+      let traceEvent: any = DEMO_SCENARIOS[scenario as keyof typeof DEMO_SCENARIOS] || null
       let partialTrace: any = { agents: {} }
 
       while (true) {
