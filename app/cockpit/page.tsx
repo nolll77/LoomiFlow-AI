@@ -57,12 +57,7 @@ export default function CockpitPage() {
 
         <div className="mt-6 rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.09)] backdrop-blur-xl">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <div className="text-xs uppercase tracking-[0.35em] text-sky-500">Premium cockpit</div>
-              <div className="text-4xl font-semibold tracking-tight text-slate-900">Design moderne pour l’orchestration IA</div>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">Un tableau de bord clair, épuré et orienté action pour piloter les décisions, la résilience et la supervision en temps réel.</p>
-            </div>
-          {/* V4 Executive Summary strip */}
+            {/* V4 Executive Summary strip */}
           {state.lastDecision?.executiveSummary && (
             <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 flex items-center gap-3">
               <span className="shrink-0 text-xs font-bold text-emerald-600 font-mono uppercase tracking-widest">Brain</span>
