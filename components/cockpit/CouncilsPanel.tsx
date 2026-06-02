@@ -90,16 +90,30 @@ function CouncilCard({
   )
 }
 
-// ─── OPINION MARKET SUMMARY ───────────────────────────────────
-
 function OpinionMarketCard({ market }: { market: MarketDecision }) {
   const entries = Object.entries(market.utilityScores).sort((a, b) => b[1] - a[1])
 
   return (
     <div className="panel-glass rounded-xl p-3 border border-yellow-500/30">
-      <h3 className="text-yellow-400 font-mono text-xs font-bold mb-2 tracking-widest">
-        OPINION MARKET
-      </h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-yellow-400 font-mono text-xs font-bold tracking-widest">
+          OPINION MARKET
+        </h3>
+        {market.coalitionType && (() => {
+          const type = market.coalitionType
+          const color =
+            type === "UNANIMOUS" ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-400" :
+            type === "MAJORITY"  ? "bg-blue-950/60 border-blue-500/40 text-blue-400" :
+            type === "SPLIT"     ? "bg-purple-950/60 border-purple-500/40 text-purple-400" :
+                                   "bg-red-950/60 border-red-500/40 text-red-400"
+          return (
+            <span className={`text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded border uppercase shadow-sm ${color}`}>
+              {type} COALITION
+            </span>
+          )
+        })()}
+      </div>
+
 
       <div className="grid grid-cols-3 gap-2 mb-2">
         {entries.map(([council, score]) => {

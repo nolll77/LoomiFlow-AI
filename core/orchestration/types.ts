@@ -60,4 +60,6 @@ export interface MarketDecision {
   confidence:      number
   executionPlan:   ExecutionPlan
   marketNarrative: string
+  coalitionType:   "UNANIMOUS" | "MAJORITY" | "SPLIT" | "VETO"
 }
+

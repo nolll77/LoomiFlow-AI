@@ -115,7 +115,20 @@ export function runOpinionMarket(
       confidence:      riskProposal.confidence,
       executionPlan:   buildExecutionPlan("BLOCK", riskProposal, revenueProposal, customerProposal, state),
       marketNarrative: `Risk Council VETO: fraud confidence ${(riskProposal.confidence * 100).toFixed(0)}% exceeds threshold. Override active.`,
+      coalitionType:   "VETO",
     }
+  }
+
+  // Coalition Detection based on proposal alignment
+  const recommendations = [riskProposal.recommendation, revenueProposal.recommendation, customerProposal.recommendation]
+  const uniqueRecs = new Set(recommendations)
+  let coalitionType: "UNANIMOUS" | "MAJORITY" | "SPLIT" | "VETO" = "SPLIT"
+  if (uniqueRecs.size === 1) {
+    coalitionType = "UNANIMOUS"
+  } else if (uniqueRecs.size === 2) {
+    coalitionType = "MAJORITY"
+  } else {
+    coalitionType = "SPLIT"
   }
 
   // ── Winning council par utilité ────────────────────────────
@@ -135,5 +148,6 @@ export function runOpinionMarket(
       riskProposal, revenueProposal, customerProposal, state
     ),
     marketNarrative: buildMarketNarrative(winnerKey, utilityScores, winningProposal),
+    coalitionType,
   }
 }
