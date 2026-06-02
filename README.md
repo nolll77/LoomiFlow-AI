@@ -119,7 +119,7 @@ We have created 6 interactive, detailed scenarios to test and showcase the pipel
 ## 📚 Documentation
 
 - [🇫🇷 Lisez le README en Français](./README.fr.md)
-- [VERIFICATIONS_CRITIQUES.md](./VERIFICATIONS_CRITIQUES.md) — Critical submission checklist & robustness verifications
+- [CRITICAL_VERIFICATIONS_EN.md](./docs/CRITICAL_VERIFICATIONS_EN.md) — Critical submission checklist & robustness verifications
 - [COUNCILS_GOVERNANCE_EN.md](./docs/COUNCILS_GOVERNANCE_EN.md) — Deep-dive into Councils, utility math, and consensus
 - [V4_STRUCTURAL_MIGRATION_EN.md](./docs/V4_STRUCTURAL_MIGRATION_EN.md) — Blueprint for clean V3 to V4 native codebase migration
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — Full ASCII diagrams + pipeline flows
