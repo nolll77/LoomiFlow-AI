@@ -2,7 +2,7 @@
 // LOOMI CONNECT MCP CLIENT — 83 tools confirmed
 // URL sans trailing slash (Saurav @here May 27, 2026)
 
-import { MCPCustomerContext } from "@/core/shared/types"
+import { MCPCustomerContext, CommerceEvent } from "@/core/shared/types"
 
 const MCP_URL = process.env.MCP_URL!
 // Should be: https://loomi-mcp-alpha.bloomreach.com/mcp (NO slash)
@@ -190,27 +190,88 @@ export const getRecommendation = (recommendationId: string) =>
 export const getCatalog = (catalogId: string) =>
   mcpCall(MCP_URL, "get_catalog", { catalog_id: catalogId, project_id: projectId() })
 
-// ─── COMPOSITE: FULL CUSTOMER CONTEXT ─────────────────────────
+// ─── SMART ROUTER: FULL CUSTOMER CONTEXT ─────────────────────────
 
-export async function getCustomerFullContext(
-  customerId: string
+type MCPTool = "get_customer_properties" | "get_customer_prediction_score" |
+               "list_customer_events" | "execute_analytics" | "get_api_trigger"
+
+const EVENT_TOOL_MAP: Record<string, MCPTool[]> = {
+  payment_failed: [
+    "get_customer_properties",
+    "get_customer_prediction_score",
+    "list_customer_events",
+    "get_api_trigger",
+  ],
+  cart_abandonment: [
+    "get_customer_properties",
+    "get_customer_prediction_score",
+    "list_customer_events",
+    "get_api_trigger",
+  ],
+  fraud_detected: [
+    "get_customer_properties",
+    "list_customer_events",
+    "get_api_trigger",
+  ],
+  vip_risk: [
+    "get_customer_properties",
+    "get_customer_prediction_score",
+    "list_customer_events",
+    "execute_analytics",
+    "get_api_trigger",
+  ],
+  normal_transaction: [
+    "get_customer_properties",
+    "get_api_trigger",
+  ],
+}
+
+export async function smartMCPFetch(
+  event: CommerceEvent
 ): Promise<MCPCustomerContext> {
-  console.log(`[MCP] Building full context for customer: ${customerId}`)
+  console.log(`[MCP] Building smart context for event: ${event.type}`)
   const t0 = Date.now()
 
-  const [propsResult, predResult, eventsResult] = await Promise.allSettled([
-    getCustomerProperties(customerId),
-    getCustomerPredictionScore(customerId),
-    listCustomerEvents(customerId, 10),
-  ])
+  const toolsNeeded = EVENT_TOOL_MAP[event.type] ?? [
+    "get_customer_properties", "get_api_trigger"
+  ]
+  
+  const allTools: MCPTool[] = [
+    "get_customer_properties", "get_customer_prediction_score",
+    "list_customer_events", "execute_analytics", "get_api_trigger"
+  ]
+  
+  const toolsSkipped = allTools.filter(t => !toolsNeeded.includes(t))
+  const savedMs = toolsSkipped.length * 80 // ~80ms per tool saved
 
-  const props =
-    propsResult.status === "fulfilled" ? propsResult.value.result : null
-  const pred =
-    predResult.status === "fulfilled" ? predResult.value.result : null
+  // Create promises only for needed tools
+  const promises = toolsNeeded.map(tool => {
+    switch (tool) {
+      case "get_customer_properties": return getCustomerProperties(event.customerId)
+      case "get_customer_prediction_score": return getCustomerPredictionScore(event.customerId)
+      case "list_customer_events": return listCustomerEvents(event.customerId, 10)
+      case "execute_analytics": return executeAnalytics({})
+      case "get_api_trigger": return getApiTrigger("default")
+      default: return Promise.resolve(null)
+    }
+  })
+
+  const results = await Promise.allSettled(promises)
+
+  // Extract results based on tool index
+  const getRes = (toolName: string) => {
+    const idx = toolsNeeded.indexOf(toolName as any)
+    if (idx === -1) return null
+    const res = results[idx]
+    return res.status === "fulfilled" && res.value ? res.value.result : null
+  }
+
+  const props = getRes("get_customer_properties")
+  const pred = getRes("get_customer_prediction_score")
+  const events = getRes("list_customer_events")
 
   const ctx: MCPCustomerContext = {
-    customerId,
+    customerId: event.customerId,
     tier: props?.tier ?? props?.customer_tier ?? "standard",
     ltv: props?.lifetime_value ?? props?.ltv ?? 0,
     churnRisk: pred?.churn_risk ?? pred?.risk_level ?? "medium",
@@ -218,23 +279,16 @@ export async function getCustomerFullContext(
     totalOrders: props?.total_orders ?? props?.purchase_count ?? 0,
     categoryPreference: props?.preferred_categories ?? [],
     segmentIds: props?.segment_ids ?? [],
-    recentEvents: eventsResult.status === "fulfilled" ? eventsResult.value.result?.events ?? [] : [],
+    recentEvents: events?.events ?? [],
     fetchedAt: Date.now(),
     latencyMs: Date.now() - t0,
     cacheHit: false,
-    toolsUsed: [
-      "get_customer_properties",
-      "get_customer_prediction_score",
-      "list_customer_events",
-    ],
+    toolsUsed: toolsNeeded,
+    toolsSkipped,
+    mcpSavedMs: savedMs,
   }
 
-  console.log(`[MCP] Context built in ${ctx.latencyMs}ms:`, {
-    tier: ctx.tier,
-    ltv: ctx.ltv,
-    churnRisk: ctx.churnRisk,
-    predictionScore: ctx.predictionScore,
-  })
+  console.log(`[MCP_ROUTER] ${event.type}: ${toolsNeeded.length} tools (saved ~${savedMs}ms) in ${ctx.latencyMs}ms`)
 
   return ctx
 }
@@ -244,18 +298,18 @@ export async function getCustomerFullContext(
 const prefetchCache = new Map<string, { promise: Promise<MCPCustomerContext>, ts: number }>()
 const PREFETCH_TTL = 8000 // 8s TTL
 
-export function prefetchMCPContext(customerId: string): Promise<MCPCustomerContext> {
-  const cached = prefetchCache.get(customerId)
+export function prefetchMCPContext(event: CommerceEvent): Promise<MCPCustomerContext> {
+  const cached = prefetchCache.get(event.customerId)
   if (cached && Date.now() - cached.ts < PREFETCH_TTL) {
-    console.log(`[MCP] Prefetch cache HIT for ${customerId} — 0ms perceived latency`)
+    console.log(`[MCP] Prefetch cache HIT for ${event.customerId} — 0ms perceived latency`)
     return cached.promise
   }
   
-  console.log(`[MCP] Prefetch cache MISS for ${customerId} — Starting background fetch`)
-  const promise = getCustomerFullContext(customerId)
-  prefetchCache.set(customerId, { promise, ts: Date.now() })
+  console.log(`[MCP] Prefetch cache MISS for ${event.customerId} — Starting background smart fetch`)
+  const promise = smartMCPFetch(event)
+  prefetchCache.set(event.customerId, { promise, ts: Date.now() })
   
   // Auto-cleanup to prevent memory leaks
-  setTimeout(() => prefetchCache.delete(customerId), PREFETCH_TTL)
+  setTimeout(() => prefetchCache.delete(event.customerId), PREFETCH_TTL)
   return promise
 }

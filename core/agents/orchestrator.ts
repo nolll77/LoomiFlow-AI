@@ -181,7 +181,7 @@ export async function runFullAgentPipeline(
     onProgress?.("mcp_start", { customerId: event.customerId })
     const { prefetchMCPContext } = await import("@/server/mcp/client")
     timeline.push({ time: ts(), label: "MCP_PREFETCH_INITIATED", type: "mcp" })
-    mcpPrefetchPromise = prefetchMCPContext(event.customerId)
+    mcpPrefetchPromise = prefetchMCPContext(event)
   }
 
   // Simulated parallel event normalization / CPU work (zero perceived latency)
@@ -260,6 +260,7 @@ export async function runFullAgentPipeline(
     confidence: decision.confidence,
     reasoning: decision.reasoning,
     mcpContextSources: mcpContext?.toolsUsed ?? [],
+    mcpSavedMs: mcpContext?.mcpSavedMs ?? 0,
     paypalData: event.paypalData,
     writeActions,
     timestamp: Date.now(),

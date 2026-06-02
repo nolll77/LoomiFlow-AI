@@ -48,6 +48,8 @@ export interface MCPCustomerContext {
   cacheHit?: boolean
   recentEvents?: CustomerEvent[]
   toolsUsed?: string[]
+  toolsSkipped?: string[]
+  mcpSavedMs?: number
   error?: string
 }
 
@@ -157,6 +159,7 @@ export interface DecisionTrace {
   confidence: number
   reasoning: string[]
   mcpContextSources: string[]
+  mcpSavedMs?: number
   paypalData?: PayPalEventData
   writeActions?: WriteActionResult[]
   timestamp: number

@@ -40,12 +40,16 @@ export default function ObservabilityMiniPanel({ decision }: { decision: Decisio
         </div>
         <div className="space-y-0.5">
           <div className="text-gray-500">MCP Tools</div>
-          <div className="text-purple-400 font-mono">{mcpCount} calls</div>
-          {obs && (
+          <div className="text-purple-400 font-mono">{mcpCount}/5 calls</div>
+          {decision.mcpSavedMs ? (
+            <div className="text-green-400 font-mono text-[9px]">
+              saved ~{decision.mcpSavedMs}ms
+            </div>
+          ) : obs ? (
             <div className="text-gray-500">
               {(obs.mcp.successRate * 100).toFixed(0)}% success
             </div>
-          )}
+          ) : null}
         </div>
         <div className="space-y-0.5">
           <div className="text-gray-500">Writes</div>
