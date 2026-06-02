@@ -149,30 +149,53 @@ export interface DecisionTrace {
   transactionId: string
   timeline: TraceEntry[]
 
-  // ── V3 required (UI components depend on these) ───────────
-  agents: {
-    fraud:   FraudAgentOutput | Record<string, unknown>
-    revenue: RevenueAgentOutput | Record<string, unknown>
-    cx:      CXAgentOutput | Record<string, unknown>
+  // ──────────────────────────────────────────────────────────
+  // V4 PRIMARY (NATIVE) — Fully Typed
+  // ──────────────────────────────────────────────────────────
+  councils?: {
+    risk:     any     // CouncilProposal with memberOpinions
+    revenue:  any     // CouncilProposal with memberOpinions
+    customer: any     // CouncilProposal with memberOpinions
   }
-  orchestrator: OrchestratorDecision
-  consensusWeights: { fraud: number; revenue: number; cx: number }
-  reasoning: string[]
+  marketDecision?: any     // MarketDecision with utilityScores
+  
+  // Shortcut for UI access (derived from marketDecision.utilityScores)
+  utilityScores?: {
+    risk: number
+    revenue: number
+    customer: number
+    winningCouncil: string
+  }
 
-  // ── V4 optional ───────────────────────────────────────────
-  councils?: Record<string, unknown>
-  marketDecision?: unknown
-  executionPlan?: unknown
-  businessImpact?: unknown
+  // ──────────────────────────────────────────────────────────
+  // V3 DEPRECATED (Backward-Compat, Optional)
+  // @deprecated Use councils instead
+  // ──────────────────────────────────────────────────────────
+  agents?: {
+    fraud?:   FraudAgentOutput | Record<string, unknown>
+    revenue?: RevenueAgentOutput | Record<string, unknown>
+    cx?:      CXAgentOutput | Record<string, unknown>
+  }
+  orchestrator?: OrchestratorDecision
+  consensusWeights?: { fraud: number; revenue: number; cx: number }
+  reasoning?: string[]
+
+  // ──────────────────────────────────────────────────────────
+  // V4 OBSERVABILITY & EVOLUTION FEATURES
+  // ──────────────────────────────────────────────────────────
+  executionPlan?: any
+  businessImpact?: any
   executiveSummary?: string
-  narrative?: string          // Commerce Narrative Engine — histoire en langage naturel
-  commerceState?: unknown     // CommerceKnowledgeState — pour le Scenario Simulator
-  contextQuality?: unknown    // ContextQualityReport — MCP Context Quality Score
-  incidentReconstruction?: unknown
-  counterfactuals?: unknown[]
-  learningInsights?: unknown
+  narrative?: string          // Commerce Narrative Engine
+  commerceState?: any         // CommerceKnowledgeState
+  contextQuality?: any        // ContextQualityReport
+  incidentReconstruction?: any
+  counterfactuals?: any[]
+  learningInsights?: any
 
-  // ── Shared ───────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────
+  // SHARED FIELDS
+  // ──────────────────────────────────────────────────────────
   finalDecision: string
   confidence: number
   mcpContextSources: string[]

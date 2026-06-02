@@ -56,12 +56,11 @@ export function decisionToGPUState(
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents   = trace.agents as any
-  const orch     = trace.orchestrator as any
-  const fraudScore = (agents?.fraud?.fraudScore ?? 0) as number
+  // V4 path (primary)
+  const riskCouncil = trace.councils?.risk?.memberOpinions ?? []
+  const fraudScore = (riskCouncil.find((o: any) => o.agentId === "fraud")?.fraudScore ?? 0) as number
   const decision   = trace.finalDecision
-  const severity   = (orch?.severity ?? "normal") as string
+  const severity   = (trace.orchestrator?.severity ?? "normal") as string
   const isCritical = severity === "critical"
 
   // Point count scales with activity

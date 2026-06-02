@@ -50,7 +50,7 @@ export function buildTraceGraph(
   // ─── INPUT NODE ───────────────────────────────────────────
   nodes.push({
     id: "input",
-    label: `${trace.agents.fraud.agentName ? "Commerce Event" : "Event"}`,
+    label: `${trace.agents?.fraud?.agentName ? "Commerce Event" : "Event"}`,
     type: "input",
     color: NODE_COLORS.input,
   })
@@ -89,12 +89,14 @@ export function buildTraceGraph(
   })
 
   // ─── AGENT NODES ──────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const a = trace.agents as any
+  const riskCouncil = trace.councils?.risk?.memberOpinions ?? []
+  const revenueCouncil = trace.councils?.revenue?.memberOpinions ?? []
+  const customerCouncil = trace.councils?.customer?.memberOpinions ?? []
+  
   const agentDefs = [
-    { id: "agent_fraud",   label: "Fraud Agent",   rec: a.fraud?.recommendation,   score: a.fraud?.score   ?? 0, color: "#FF3B3B" },
-    { id: "agent_revenue", label: "Revenue Agent", rec: a.revenue?.recommendation, score: a.revenue?.score ?? 0, color: "#FF9F1C" },
-    { id: "agent_cx",      label: "CX Agent",      rec: a.cx?.recommendation,      score: a.cx?.score      ?? 0, color: "#2EE59D" },
+    { id: "agent_fraud",   label: "Fraud Agent",   rec: riskCouncil.find((o: any) => o.agentId === "fraud")?.recommendation,   score: riskCouncil.find((o: any) => o.agentId === "fraud")?.score   ?? 0, color: "#FF3B3B" },
+    { id: "agent_revenue", label: "Revenue Agent", rec: revenueCouncil.find((o: any) => o.agentId === "revenue")?.recommendation, score: revenueCouncil.find((o: any) => o.agentId === "revenue")?.score ?? 0, color: "#FF9F1C" },
+    { id: "agent_cx",      label: "CX Agent",      rec: customerCouncil.find((o: any) => o.agentId === "cx")?.recommendation,      score: customerCouncil.find((o: any) => o.agentId === "cx")?.score      ?? 0, color: "#2EE59D" },
   ]
 
   agentDefs.forEach(a => {
@@ -118,7 +120,8 @@ export function buildTraceGraph(
     color: NODE_COLORS.consensus,
   })
   agentDefs.forEach(a => {
-    const w = trace.consensusWeights[a.id.split("_")[1] as keyof typeof trace.consensusWeights]
+    const key = a.id.split("_")[1] as keyof typeof trace.consensusWeights
+    const w = trace.consensusWeights?.[key] ?? 0.33
     edges.push({ from: a.id, to: "consensus", label: `w=${w}`, weight: w, color: a.color })
   })
 

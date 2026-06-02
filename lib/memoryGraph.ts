@@ -7,11 +7,15 @@ import { DecisionTrace, AgentMemoryGraph, MemoryNode, MemoryEdge } from "@/core/
 
 export function buildAgentMemoryGraph(trace: DecisionTrace): AgentMemoryGraph {
   const { finalDecision, mcpContextSources, confidence, id } = trace
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents = trace.agents as any
-  const fraud   = agents?.fraud   ?? {}
-  const revenue = agents?.revenue ?? {}
-  const cx      = agents?.cx      ?? {}
+  
+  // V4 path (primary)
+  const riskCouncil = trace.councils?.risk?.memberOpinions ?? []
+  const revenueCouncil = trace.councils?.revenue?.memberOpinions ?? []
+  const customerCouncil = trace.councils?.customer?.memberOpinions ?? []
+  
+  const fraud   = riskCouncil.find((o: any) => o.agentId === "fraud")   ?? {}
+  const revenue = revenueCouncil.find((o: any) => o.agentId === "revenue") ?? {}
+  const cx      = customerCouncil.find((o: any) => o.agentId === "cx")      ?? {}
 
   const nodes: MemoryNode[] = [
     // ── Event observation

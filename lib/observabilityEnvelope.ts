@@ -47,12 +47,14 @@ export function buildLatencyBreakdown(
   }
 
   // Synthesize LLM time from agent latencies (parallel, so max of the three)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const a = trace.agents as any
+  const riskCouncil = trace.councils?.risk?.memberOpinions ?? []
+  const revenueCouncil = trace.councils?.revenue?.memberOpinions ?? []
+  const customerCouncil = trace.councils?.customer?.memberOpinions ?? []
+  
   const agentLatencies = [
-    (a?.fraud?.latencyMs   ?? 890) as number,
-    (a?.revenue?.latencyMs ?? 620) as number,
-    (a?.cx?.latencyMs      ?? 510) as number,
+    (riskCouncil.find((o: any) => o.agentId === "fraud")?.latencyMs   ?? 890) as number,
+    (revenueCouncil.find((o: any) => o.agentId === "revenue")?.latencyMs ?? 620) as number,
+    (customerCouncil.find((o: any) => o.agentId === "cx")?.latencyMs      ?? 510) as number,
   ]
   grouped.llm = Math.max(...agentLatencies)
   grouped.agents = Math.max(0, grouped.agents - grouped.llm) // avoid double count

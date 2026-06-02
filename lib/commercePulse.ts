@@ -37,10 +37,10 @@ function avgFraudFromTraces(traces: DecisionTrace[]): number {
   if (recent.length === 0) return 0.3
   const sum = recent.reduce((acc, t) => {
     // V4 path: councils.risk.memberOpinions[fraud].fraudScore
-    const councils = (t as any).councils as
+    const councils = t.councils as
       Record<string, { memberOpinions: Array<{ agentId: string; fraudScore?: number; confidence?: number }> }> | undefined
     const fraudOp = councils?.risk?.memberOpinions?.find(o => o.agentId === "fraud")
-    const score   = fraudOp?.fraudScore ?? fraudOp?.confidence ?? (t.agents as any)?.fraud?.fraudScore ?? 0.3
+    const score   = (fraudOp?.fraudScore ?? fraudOp?.confidence ?? t.agents?.fraud?.fraudScore ?? 0.3) as number
     return acc + score
   }, 0)
   return sum / recent.length

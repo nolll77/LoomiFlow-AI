@@ -446,12 +446,22 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
 
   return {
     ...partialTrace,
-    agents: {
-      fraud:   (riskC.memberOpinions.find(o => o.agentId === "fraud")   ?? {}) as Record<string, unknown>,
-      revenue: (riskC.memberOpinions.find(o => o.agentId === "revenue") ?? {}) as Record<string, unknown>,
-      cx:      (riskC.memberOpinions.find(o => o.agentId === "cx")      ?? {}) as Record<string, unknown>,
+    // V4 PRIMARY (no more as any casts needed)
+    councils: { risk: riskC, revenue: revenueC, customer: customerC },
+    marketDecision,
+    utilityScores: {
+      risk:          riskC.memberOpinions.reduce((acc, o) => acc + (o.score ?? 0), 0) / riskC.memberOpinions.length,
+      revenue:       revenueC.memberOpinions.reduce((acc, o) => acc + (o.score ?? 0), 0) / revenueC.memberOpinions.length,
+      customer:      customerC.memberOpinions.reduce((acc, o) => acc + (o.score ?? 0), 0) / customerC.memberOpinions.length,
+      winningCouncil: marketDecision.coalitionType || "risk",
     },
-    // V3 compat stubs (UI components read these)
+    
+    // V3 DEPRECATED (backward-compat only)
+    agents: {
+      fraud:   (riskC.memberOpinions.find((o: any) => o.agentId === "fraud")   ?? {}) as Record<string, unknown>,
+      revenue: (revenueC.memberOpinions.find((o: any) => o.agentId === "revenue") ?? {}) as Record<string, unknown>,
+      cx:      (customerC.memberOpinions.find((o: any) => o.agentId === "cx")      ?? {}) as Record<string, unknown>,
+    },
     orchestrator: {
       finalDecision:    marketDecision.finalDecision as OrchestratorDecision["finalDecision"],
       confidence:       marketDecision.confidence,
@@ -462,9 +472,8 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
     },
     consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
     reasoning:        [marketDecision.marketNarrative],
-    // V4
-    councils:             { risk: riskC, revenue: revenueC, customer: customerC },
-    marketDecision,
+    
+    // V4 EVOLUTION
     executionPlan:        marketDecision.executionPlan,
     businessImpact:       marketDecision.executionPlan.businessImpact,
     executiveSummary:     marketDecision.executionPlan.executiveSummary,

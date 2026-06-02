@@ -101,7 +101,7 @@ export default function CockpitPage() {
                     impact={state.lastDecision.businessImpact as BusinessImpactSummary}
                     executiveSummary={state.lastDecision.executiveSummary}
                     decision={state.lastDecision.finalDecision}
-                    councilWinner={(state.lastDecision.marketDecision as any)?.winningCouncil ?? "risk"}
+                    councilWinner={state.lastDecision.utilityScores?.winningCouncil ?? "risk"}
                     narrative={state.lastDecision.narrative}
                   />
                 ) : (
