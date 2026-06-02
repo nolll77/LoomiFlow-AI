@@ -101,18 +101,26 @@ export async function cxAgent(state: CommerceKnowledgeState): Promise<AgentOpini
     customer.churnScore > 0.60 ? "VIP_OUTREACH" :
     customer.churnScore > 0.40 ? "RETENTION_OFFER" : "STANDARD"
 
+  const confidence = 0.78
+  const dataQuality = customer.churnScore != null ? 0.85 : 0.4
+  const reasoning = [
+    `Churn score: ${customer.churnScore.toFixed(2)}`,
+    `Friction score: ${frictionScore.toFixed(2)}`,
+    `Journey state: ${customer.journeyState}`,
+    `Support tickets open: ${customer.supportTicketsOpen}`,
+    `Engagement: ${(customer.engagementScore * 100).toFixed(0)}%`,
+  ]
+
+  const churnRiskLevel: "low" | "medium" | "high" =
+    customer.churnScore > 0.75 ? "high" :
+    customer.churnScore > 0.40 ? "medium" : "low"
+
   return {
     agentId: "cx",
     recommendation,
-    confidence: 0.78,
-    dataQuality: customer.churnScore != null ? 0.85 : 0.4,
-    reasoning: [
-      `Churn score: ${customer.churnScore.toFixed(2)}`,
-      `Friction score: ${frictionScore.toFixed(2)}`,
-      `Journey state: ${customer.journeyState}`,
-      `Support tickets open: ${customer.supportTicketsOpen}`,
-      `Engagement: ${(customer.engagementScore * 100).toFixed(0)}%`,
-    ],
+    confidence,
+    dataQuality,
+    reasoning,
     expectedOutcome: {
       retentionGain: recommendation !== "STANDARD" ? 0.12 : 0,
     },
@@ -125,5 +133,17 @@ export async function cxAgent(state: CommerceKnowledgeState): Promise<AgentOpini
       rollbackable: true,
     }] : [],
     dataQualityFlags: [],
+    
+    // ──────────────────────────────────────────────────────
+    // BACKWARD COMPAT FIELDS (V3 UI components)
+    // ──────────────────────────────────────────────────────
+    agentName: "cx",
+    score: confidence,
+    reasons: reasoning,
+    churnRisk: churnRiskLevel,
+    friction: frictionScore,
+    retentionProbability: recommendation !== "STANDARD" ? 0.88 : 0.45,
+    latencyMs: 0,
+    mcpSourcesUsed: ["get_customer_prediction_score", "get_customer_properties"],
   }
 }

@@ -112,18 +112,22 @@ export async function revenueAgent(state: CommerceKnowledgeState): Promise<Agent
     revenue.revenueAtRisk > 200 ? "RECOVERY_CAMPAIGN" :
     revenue.revenueAtRisk > 0   ? "ALLOW" : "MONITOR"
 
+  const confidence = 0.82
+  const dataQuality = revenue.revenueAtRisk > 0 ? 0.9 : 0.5
+  const reasoning = [
+    `Revenue at risk: €${revenue.revenueAtRisk}`,
+    `Recovery potential: €${recoveryPotential.toFixed(0)}`,
+    `Email open rate: ${(customer.emailOpenRate * 100).toFixed(0)}%`,
+    `Campaign performance: ${campaign.campaignPerformance}`,
+    `Forecasted LTV: €${revenue.forecastedLTV}`,
+  ]
+
   return {
     agentId: "revenue",
     recommendation,
-    confidence: 0.82,
-    dataQuality: revenue.revenueAtRisk > 0 ? 0.9 : 0.5,
-    reasoning: [
-      `Revenue at risk: €${revenue.revenueAtRisk}`,
-      `Recovery potential: €${recoveryPotential.toFixed(0)}`,
-      `Email open rate: ${(customer.emailOpenRate * 100).toFixed(0)}%`,
-      `Campaign performance: ${campaign.campaignPerformance}`,
-      `Forecasted LTV: €${revenue.forecastedLTV}`,
-    ],
+    confidence,
+    dataQuality,
+    reasoning,
     expectedOutcome: { revenueGained: recoveryPotential },
     urgency: revenue.revenueAtRisk > 500 ? "high" : "medium",
     requiredActions: [{
@@ -138,5 +142,19 @@ export async function revenueAgent(state: CommerceKnowledgeState): Promise<Agent
       rollbackable: false,
     }],
     dataQualityFlags: [],
+    
+    // ──────────────────────────────────────────────────────
+    // BACKWARD COMPAT FIELDS (V3 UI components)
+    // ──────────────────────────────────────────────────────
+    agentName: "revenue",
+    score: confidence,
+    reasons: reasoning,
+    customerLTV: revenue.forecastedLTV,
+    revenueAtRisk: revenue.revenueAtRisk,
+    discountRecommendation: revenue.revenueAtRisk > 500 ? "10%" : revenue.revenueAtRisk > 200 ? "5%" : undefined,
+    revenueRecoveryProbability: customer.emailOpenRate > 0.4 ? 0.78 : 0.55,
+    priority: revenue.revenueAtRisk > 500 ? "critical" : revenue.revenueAtRisk > 200 ? "high" : "medium",
+    latencyMs: 0,
+    mcpSourcesUsed: ["get_customer_properties", "get_customer_prediction_score"],
   }
 }

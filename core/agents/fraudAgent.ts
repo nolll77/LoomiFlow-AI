@@ -180,5 +180,22 @@ export async function fraudAgent(state: CommerceKnowledgeState): Promise<AgentOp
       rollbackable: true,
     }] : [],
     dataQualityFlags: dataQuality < 0.6 ? ["INSUFFICIENT_FRAUD_DATA"] : [],
+    
+    // ──────────────────────────────────────────────────────
+    // BACKWARD COMPAT FIELDS (V3 UI components)
+    // ──────────────────────────────────────────────────────
+    agentName: "fraud",
+    score: dataQuality * (score > 0.7 ? 0.95 : score > 0.5 ? 0.80 : 0.65),
+    reasons: [
+      `Fraud score: ${score.toFixed(2)} (base: ${fraud.fraudScore.toFixed(2)})`,
+      ...fraud.signals.map(s => `Signal: ${s}`),
+      `Customer LTV: €${customer.ltv}`,
+      `Threshold (adaptive): ${thresholds.fraudBlockThreshold.toFixed(2)}`,
+    ],
+    fraudScore: score,
+    signals: fraud.signals,
+    blockPayment: recommendation === "BLOCK",
+    latencyMs: 0,
+    mcpSourcesUsed: ["get_customer_properties", "list_customer_events"],
   }
 }
