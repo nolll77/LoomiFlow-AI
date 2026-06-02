@@ -5,7 +5,7 @@ Roadmap Owner: Noël Ching, author of LoomiFlow AI
 **Document Status**: Active Execution  
 **Created**: June 2, 2026  
 **Last Updated**: June 3, 2026  
-**Plan Version**: 5-Point Roadmap (Priority Order)
+**Plan Version**: 5-Point Global Roadmap
 
 ---
 
@@ -15,10 +15,10 @@ This document tracks the complete technical debt remediation plan for LoomiFlow 
 
 ---
 
-## 5-Point Roadmap (Priority Order)
+## 5-Point Global Roadmap
 
 ### 1. **V4 Native Migration — Eliminate `as any` Casts**
-**Status**: 🟢 FULLY COMPLETE (PHASES 1-7 DONE)  
+**Status**: 🟢 FULLY COMPLETE (Sub-Phases 1-7 DONE)  
 **Priority**: CRITICAL  
 **Effort**: Completed  
 **Blocker**: Resolved
@@ -32,19 +32,19 @@ This document tracks the complete technical debt remediation plan for LoomiFlow 
 - ✅ 7 hackathon evolutions implemented (Commerce Narrative, Heatmap, Scenario Simulator, etc.)
 - ✅ MCP Context Quality Score (Grade A-F) working
 - ✅ ExecutionPlan and WriteActions structured
-- ✅ **PHASE 1 COMPLETE**: Extended `AgentOpinion` with backward-compat fields (fraudScore, customerLTV, churnRisk, etc.)
-- ✅ **PHASE 2 COMPLETE**: Updated `DecisionTrace` councils type definitions in `core/shared/types.ts`
-- ✅ **PHASE 3 COMPLETE**: Refactored orchestrator in `core/agents/orchestrator.ts` to type contextQuality and councils properly
-- ✅ **PHASE 4 COMPLETE**: Removed all `as any` casts on `marketDecision` in `app/cockpit/page.tsx`
-- ✅ **PHASE 5 COMPLETE**: Updated all `lib/*.ts` trace access points to use typed `getAgentOpinionsFromTrace` helper instead of `as any`
-- ✅ **PHASE 6 COMPLETE**: Removed old weight assertion stubs, updated tests to support dynamic weights
-- ✅ **PHASE 7 COMPLETE**: Verified compiler type-safety checks (`npm run build:check`) and pipeline unit tests run flawlessly
+- ✅ **Sub-Phase 1 COMPLETE**: Extended `AgentOpinion` with backward-compat fields (fraudScore, customerLTV, churnRisk, etc.)
+- ✅ **Sub-Phase 2 COMPLETE**: Updated `DecisionTrace` councils type definitions in `core/shared/types.ts`
+- ✅ **Sub-Phase 3 COMPLETE**: Refactored orchestrator in `core/agents/orchestrator.ts` to type contextQuality and councils properly
+- ✅ **Sub-Phase 4 COMPLETE**: Removed all `as any` casts on `marketDecision` in `app/cockpit/page.tsx`
+- ✅ **Sub-Phase 5 COMPLETE**: Updated all `lib/*.ts` trace access points to use typed `getAgentOpinionsFromTrace` helper instead of `as any`
+- ✅ **Sub-Phase 6 COMPLETE**: Removed old weight assertion stubs, updated tests to support dynamic weights
+- ✅ **Sub-Phase 7 COMPLETE**: Verified compiler type-safety checks (`npm run build:check`) and pipeline unit tests run flawlessly
 
 #### What Remains
 
 | Task | Files Affected | Approach |
 |------|-----------------|----------|
-| **PHASE 8: Deprecate V3 Types** | Mark `FraudAgentOutput`, `RevenueAgentOutput`, `CXAgentOutput` as `@deprecated` | Add migration guide comments |
+| **Sub-Phase 8: Deprecate V3 Types** | Mark `FraudAgentOutput`, `RevenueAgentOutput`, `CXAgentOutput` as `@deprecated` | Add migration guide comments |
 
 #### Current `as any` Locations (Only 2 Legitimate Locations Remain)
 
@@ -132,7 +132,7 @@ server/mcp/client.ts:1                   // toolName enum casting
 | Documentation Completeness | 100% | 100% |
 | Technical Debt Score | 9.5/10 | 9+/10 |
 | Phase 1 Status | ✅ COMPLETE | - |
-| V4 Native Migration Status | ✅ COMPLETE (Phases 1-7) | - |
+| V4 Native Migration Status | ✅ COMPLETE (Sub-Phases 1-7) | - |
 | Estimated Remaining Work | None (V4 Native Types migration is fully completed and verified) | - |
 
 ---
@@ -140,22 +140,22 @@ server/mcp/client.ts:1                   // toolName enum casting
 ## Implementation Order & Dependencies
 
 ```
-PHASE 1: AgentOpinion ext. (COMPLETE)
+Sub-Phase 1: AgentOpinion ext. (COMPLETE)
     ↓
-PHASE 2: DecisionTrace redesign (COMPLETE)
+Sub-Phase 2: DecisionTrace redesign (COMPLETE)
     ↓
-PHASE 3: Orchestrator refactor (COMPLETE)
-    ├── PHASE 4: UI Component fixes (COMPLETE)
-    ├── PHASE 5: Memory Graph updates (COMPLETE)
-    └── PHASE 6: Dead code removal / test fixes (COMPLETE)
+Sub-Phase 3: Orchestrator refactor (COMPLETE)
+    ├── Sub-Phase 4: UI Component fixes (COMPLETE)
+    ├── Sub-Phase 5: Memory Graph updates (COMPLETE)
+    └── Sub-Phase 6: Dead code removal / test fixes (COMPLETE)
     ↓
-PHASE 7: Type safety tests (COMPLETE)
+Sub-Phase 7: Type safety tests (COMPLETE)
     ↓
 [NEXT STEPS]
-    ├── PHASE 2: Vitest setup & agent tests (COMPLETE)
-    ├── PHASE 3: Observability (COMPLETE)
-    ├── PHASE 4: Learning Agent (COMPLETE)
-    └── PHASE 5: Documentation UI
+    ├── Chantier 2: Vitest setup & agent tests (COMPLETE)
+    ├── Chantier 3: Observability (COMPLETE)
+    ├── Chantier 4: Learning Agent (COMPLETE)
+    └── Chantier 5: Documentation UI
 ```
 
 ---
