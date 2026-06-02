@@ -20,7 +20,7 @@ export function generateFraudLoad(intensity: number): LoadProfile {
 
 export function generateEvents(profile: LoadProfile, count: number): Partial<CommerceEvent>[] {
   return Array.from({ length: count }).map((_, i) => ({
-    id: `load_${Date.now()}_${i}`,
+    id: `load_${Date.now()}_${i}_${Math.random().toString(36).substring(2, 9)}`,
     type: "payment_failed" as const,
     timestamp: Date.now(),
     customerId: Math.random() < 0.1 ? "vip_pacific_001" : `user_${Math.floor(Math.random() * 1000)}`,
