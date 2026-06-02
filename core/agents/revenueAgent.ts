@@ -4,10 +4,14 @@ import { CommerceEvent, MCPCustomerContext, RevenueAgentOutput } from "@/core/sh
 import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 import type { AgentOpinion } from "@/core/shared/agentTypes"
 
+import { info } from "@/lib/logger"
+
 function log(step: string, data?: any) {
-  const msg = `[AGENT][REVENUE][${step}] ${data ? JSON.stringify(data).slice(0, 150) : ""}`
-  console.log(msg)
-  try { const fs=require("fs"),path=require("path"),dir=path.join(process.cwd(),"local-prints"); if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true}); fs.appendFileSync(path.join(dir,"agent-decisions.log"),msg+"\n") } catch {}
+  info(`Agent REVENUE ${step}`, data)
+  try {
+    const msg = `[AGENT][REVENUE][${step}] ${data ? JSON.stringify(data).slice(0, 150) : ""}`
+    const fs=require("fs"),path=require("path"),dir=path.join(process.cwd(),"local-prints"); if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true}); fs.appendFileSync(path.join(dir,"agent-decisions.log"),msg+"\n")
+  } catch {}
 }
 
 export async function runRevenueAgent(

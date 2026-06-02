@@ -9,10 +9,14 @@ import type { ContextQualityReport } from "@/lib/contextQualityScorer"
 import { executeAgentDecisionWrites } from "@/server/bloomreach/writeApi"
 import { getAdaptedThresholds, recordDecision, getLedgerStats } from "@/lib/sessionLedger"
 
+import { info, runWithTrace } from "@/lib/logger"
+
 function log(step: string, data?: any) {
-  const msg = `[ORCHESTRATOR][${step}] ${data ? JSON.stringify(data).slice(0,200) : ""}`
-  console.log(msg)
-  try { const fs=require("fs"),path=require("path"),dir=path.join(process.cwd(),"local-prints"); if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true}); fs.appendFileSync(path.join(dir,"agent-decisions.log"),msg+"\n") } catch {}
+  info(`Orchestrator ${step}`, data)
+  try {
+    const msg = `[ORCHESTRATOR][${step}] ${data ? JSON.stringify(data).slice(0,200) : ""}`
+    const fs=require("fs"),path=require("path"),dir=path.join(process.cwd(),"local-prints"); if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true}); fs.appendFileSync(path.join(dir,"agent-decisions.log"),msg+"\n")
+  } catch {}
 }
 
 export async function runOrchestrator(
@@ -169,9 +173,11 @@ export async function runFullAgentPipeline(
   useLLM = false,
   onProgress?: (type: string, data: any) => void
 ): Promise<DecisionTrace> {
-  console.log(`[PIPELINE] Starting for event: ${event.id} type=${event.type}`)
-  const t0 = Date.now()
-  const timeline: TraceEntry[] = []
+  const traceId = `trace_${event.id}_${Date.now()}`
+  return runWithTrace(traceId, async () => {
+    info(`[PIPELINE] Starting for event: ${event.id} type=${event.type}`)
+    const t0 = Date.now()
+    const timeline: TraceEntry[] = []
   const ts = () => new Date().toISOString().split("T")[1].replace("Z", "")
 
   timeline.push({ time: ts(), label: "COMMERCE_EVENT_RECEIVED", type: "event" })
@@ -301,23 +307,25 @@ export async function runFullAgentPipeline(
   } catch (e) { console.warn("[PIPELINE] Incident logging failed:", e) }
 
   const elapsed = Date.now() - t0
-  console.log(`[PIPELINE] Complete in ${elapsed}ms — Decision: ${decision.finalDecision} (${(decision.confidence*100).toFixed(0)}% confidence)`)
+  info(`[PIPELINE] Complete in ${elapsed}ms — Decision: ${decision.finalDecision}`, { elapsed, finalDecision: decision.finalDecision, confidence: decision.confidence })
   onProgress?.("trace_complete", { trace })
   return trace
+  })
 }
 
 
 // ─── V4 PIPELINE — BRAIN ──────────────────────────────────────
 
 export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace> {
-  const t0 = Date.now()
   const traceId = `trace_${event.id}_${Date.now()}`
-  const spans: { name: string; ts: number; data?: unknown }[] = []
+  return runWithTrace(traceId, async () => {
+    const t0 = Date.now()
+    const spans: { name: string; ts: number; data?: unknown }[] = []
 
-  function span(name: string, data?: unknown) {
-    spans.push({ name, ts: Date.now() - t0, data })
-    console.log(`[BRAIN][${name}]`, data ? JSON.stringify(data).slice(0, 120) : "")
-  }
+    function span(name: string, data?: unknown) {
+      spans.push({ name, ts: Date.now() - t0, data })
+      info(`[BRAIN][${name}]`, data ? { data } : undefined)
+    }
 
   // LAYER 0 : State
   span("CONTEXT_BUILD_START")
@@ -391,7 +399,7 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
 
   const totalMs = Date.now() - t0
   span("PIPELINE_COMPLETE", { totalMs })
-  console.log(`[BRAIN] Done in ${totalMs}ms — ${marketDecision.finalDecision} (${(marketDecision.confidence * 100).toFixed(0)}% conf) | Winner: ${marketDecision.winningCouncil}`)
+  info(`[BRAIN] Done in ${totalMs}ms — ${marketDecision.finalDecision} | Winner: ${marketDecision.winningCouncil}`, { totalMs, finalDecision: marketDecision.finalDecision, winningCouncil: marketDecision.winningCouncil })
 
   const timeline: TraceEntry[] = spans.map(s => ({
     time: new Date(t0 + s.ts).toISOString().split("T")[1].replace("Z", ""),
@@ -491,4 +499,5 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
     incidentReconstruction,
     learningInsights:     getLearningInsights(),
   }
+  })
 }

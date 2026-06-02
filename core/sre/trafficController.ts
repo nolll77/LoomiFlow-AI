@@ -3,13 +3,14 @@
 // Replaces static canary (5%→25%→100%) with continuous AI-driven allocation
 
 import { TrafficSplit } from "@/core/shared/types"
+import { info } from "@/lib/logger"
 
 function sreLog(step: string, data?: any) {
-  const msg = `[SRE][TRAFFIC][${step}][${new Date().toISOString()}] ${
-    data ? JSON.stringify(data).slice(0, 200) : ""
-  }`
-  console.log(msg)
+  info(`SRE Traffic ${step}`, data)
   try {
+    const msg = `[SRE][TRAFFIC][${step}][${new Date().toISOString()}] ${
+      data ? JSON.stringify(data).slice(0, 200) : ""
+    }`
     const fs = require("fs"), path = require("path")
     const dir = path.join(process.cwd(), "local-prints")
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })

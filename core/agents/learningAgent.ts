@@ -6,6 +6,7 @@ import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 import type { MarketDecision }         from "@/core/orchestration/types"
 import { adjustThreshold, getAdaptedThresholds } from "@/lib/sessionLedger"
 import { adjustCouncilWeight, getCurrentCouncilWeights } from "@/core/orchestration/opinionMarket"
+import { info } from "@/lib/logger"
 
 // ─── TYPES ────────────────────────────────────────────────────
 
@@ -92,9 +93,9 @@ export function recordOutcome(
 // ─── ADAPTATION ───────────────────────────────────────────────
 
 function adaptFromMemory(): void {
-  if (decisionMemory.length < 8) return
+  if (decisionMemory.length < 10) return
 
-  const recent = decisionMemory.slice(-15)
+  const recent = decisionMemory.slice(-50)
 
   // ── Distribution des décisions ────────────────────────────
   const decisionDist: Record<string, number> = {}
@@ -114,20 +115,20 @@ function adaptFromMemory(): void {
   // Sur-détection fraude → relâcher légèrement
   if (blockRate > 0.45) {
     adjustThreshold("fraudBlockThreshold", +0.02)
-    console.log("[LEARNING] High BLOCK rate. Relaxing fraud threshold slightly.")
+    info("[LEARNING] High BLOCK rate. Relaxing fraud threshold slightly.", { blockRate })
   }
 
   // Environnement à risque élevé → mode défensif
   if (avgFraud > 0.72) {
     adjustThreshold("fraudBlockThreshold", -0.03)
     adjustThreshold("fraudStepThreshold",  -0.02)
-    console.log("[LEARNING] High fraud environment. Tightening thresholds. DEFENSIVE MODE.")
+    info("[LEARNING] High fraud environment. Tightening thresholds. DEFENSIVE MODE.", { avgFraud })
   }
 
   // STEP_UP trop rare → peut-être seuil trop haut
   if (stepUpRate < 0.05 && blockRate < 0.10 && avgFraud > 0.5) {
     adjustThreshold("fraudStepThreshold", -0.02)
-    console.log("[LEARNING] Low STEP_UP_AUTH rate despite fraud signals. Lowering step threshold.")
+    info("[LEARNING] Low STEP_UP_AUTH rate despite fraud signals. Lowering step threshold.", { stepUpRate, blockRate, avgFraud })
   }
 
   // Risk Council trop dominant → rééquilibrer
@@ -136,7 +137,7 @@ function adaptFromMemory(): void {
     adjustCouncilWeight("risk",     -0.02)
     adjustCouncilWeight("revenue",  +0.01)
     adjustCouncilWeight("customer", +0.01)
-    console.log("[LEARNING] Risk council over-dominant. Rebalancing.")
+    info("[LEARNING] Risk council over-dominant. Rebalancing.", { riskDominance })
   }
 }
 

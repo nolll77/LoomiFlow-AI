@@ -5,12 +5,14 @@ import { analyzeBehavior } from "@/core/mcp/behaviorAnalyzer"
 import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 import type { AgentOpinion } from "@/core/shared/agentTypes"
 
+import { info } from "@/lib/logger"
+
 function agentLog(name: string, step: string, data?: any) {
-  const msg = `[AGENT][${name}][${step}][${new Date().toISOString()}] ${
-    data ? JSON.stringify(data).slice(0, 200) : ""
-  }`
-  console.log(msg)
+  info(`Agent ${name} ${step}`, data)
   try {
+    const msg = `[AGENT][${name}][${step}][${new Date().toISOString()}] ${
+      data ? JSON.stringify(data).slice(0, 200) : ""
+    }`
     const fs = require("fs"), path = require("path")
     const dir = path.join(process.cwd(), "local-prints")
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })

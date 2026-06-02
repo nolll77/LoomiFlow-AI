@@ -4,10 +4,14 @@ import { CommerceEvent, MCPCustomerContext, CXAgentOutput } from "@/core/shared/
 import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 import type { AgentOpinion } from "@/core/shared/agentTypes"
 
+import { info } from "@/lib/logger"
+
 function log(step: string, data?: any) {
-  const msg = `[AGENT][CX][${step}] ${data ? JSON.stringify(data).slice(0,150) : ""}`
-  console.log(msg)
-  try { const fs=require("fs"),path=require("path"),dir=path.join(process.cwd(),"local-prints"); if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true}); fs.appendFileSync(path.join(dir,"agent-decisions.log"),msg+"\n") } catch {}
+  info(`Agent CX ${step}`, data)
+  try {
+    const msg = `[AGENT][CX][${step}] ${data ? JSON.stringify(data).slice(0,150) : ""}`
+    const fs=require("fs"),path=require("path"),dir=path.join(process.cwd(),"local-prints"); if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true}); fs.appendFileSync(path.join(dir,"agent-decisions.log"),msg+"\n")
+  } catch {}
 }
 
 export async function runCXAgent(
