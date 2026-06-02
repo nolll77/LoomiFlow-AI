@@ -167,6 +167,7 @@ export interface DecisionTrace {
   executiveSummary?: string
   narrative?: string          // Commerce Narrative Engine — histoire en langage naturel
   commerceState?: unknown     // CommerceKnowledgeState — pour le Scenario Simulator
+  contextQuality?: unknown    // ContextQualityReport — MCP Context Quality Score
   incidentReconstruction?: unknown
   counterfactuals?: unknown[]
   learningInsights?: unknown

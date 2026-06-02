@@ -3,6 +3,8 @@
 "use client"
 import { DecisionTrace } from "@/core/shared/types"
 import { formatCost, formatLatency, ANOMALY_LABELS } from "@/lib/observabilityEnvelope"
+import type { ContextQualityReport } from "@/lib/contextQualityScorer"
+import { gradeColor, impactLabel } from "@/lib/contextQualityScorer"
 
 const ANOMALY_COLORS: Record<string, string> = {
   HIGH_LATENCY:   "#F59E0B",
@@ -19,6 +21,7 @@ export default function ObservabilityMiniPanel({ decision }: { decision: Decisio
   const mcpCount = decision.mcpContextSources.length
   const writeCount = decision.writeActions?.length ?? 0
   const writeOk = decision.writeActions?.filter(a => a.status === "success").length ?? 0
+  const cq = decision.contextQuality as ContextQualityReport | undefined
 
   return (
     <div className="panel-glass rounded-2xl p-3 space-y-2.5">
@@ -30,6 +33,52 @@ export default function ObservabilityMiniPanel({ decision }: { decision: Decisio
           </span>
         )}
       </div>
+
+      {/* MCP Context Quality Badge */}
+      {cq && (
+        <div
+          className="flex items-center justify-between rounded-lg px-2.5 py-2 border"
+          style={{
+            borderColor: gradeColor(cq.grade) + "40",
+            background:  gradeColor(cq.grade) + "0f",
+          }}
+        >
+          <div className="flex items-center gap-2">
+            {/* Grade ring */}
+            <span
+              className="text-[13px] font-black font-mono w-6 text-center"
+              style={{ color: gradeColor(cq.grade) }}
+            >
+              {cq.grade}
+            </span>
+            <div className="flex flex-col leading-none">
+              <span className="text-[9px] text-gray-500 uppercase tracking-widest">MCP Context</span>
+              <span
+                className="text-[10px] font-mono font-bold"
+                style={{ color: gradeColor(cq.grade) }}
+              >
+                {cq.overallScore}/100
+                {cq.missingFields.length > 0 && (
+                  <span className="text-gray-500 font-normal">
+                    {" — "}{cq.missingFields.length} field{cq.missingFields.length > 1 ? "s" : ""} missing
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
+          {cq.impactOnDecision !== "NONE" && (
+            <span
+              className="text-[9px] font-mono px-1.5 py-0.5 rounded"
+              style={{
+                color:      gradeColor(cq.grade),
+                background: gradeColor(cq.grade) + "20",
+              }}
+            >
+              {impactLabel(cq.impactOnDecision)}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Grid: core metrics */}
       <div className="grid grid-cols-2 gap-2 text-[10px]">

@@ -436,6 +436,14 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
     )
   } catch (e) { console.warn("[BRAIN] Narrative generation failed:", e) }
 
+  // MCP Context Quality Score — honnêteté sur la qualité des données
+  let contextQuality: unknown
+  try {
+    const { scoreContextQuality } = await import("@/lib/contextQualityScorer")
+    contextQuality = scoreContextQuality(state)
+    span("CONTEXT_QUALITY_SCORED", { grade: (contextQuality as any).grade, score: (contextQuality as any).overallScore })
+  } catch (e) { console.warn("[BRAIN] Context quality scoring failed:", e) }
+
   return {
     ...partialTrace,
     agents: {
@@ -462,6 +470,7 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
     executiveSummary:     marketDecision.executionPlan.executiveSummary,
     narrative,
     commerceState:        state,
+    contextQuality,
     counterfactuals,
     incidentReconstruction,
     learningInsights:     getLearningInsights(),
