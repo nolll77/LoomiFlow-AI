@@ -2,7 +2,7 @@
 // Bloomberg-style order book showing agent voting pressure
 "use client"
 import { useMemo } from "react"
-import { DecisionTrace } from "@/core/shared/types"
+import { DecisionTrace, getAgentOpinionsFromTrace } from "@/core/shared/types"
 import { agentsToOrders, buildOrderBook } from "@/lib/orderBookEngine"
 
 const SENTIMENT_CONFIG = {
@@ -15,12 +15,11 @@ const SENTIMENT_CONFIG = {
 export default function DecisionOrderBook({ decision }: { decision: DecisionTrace | null }) {
   const book = useMemo(() => {
     if (!decision) return null
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const agents = decision.agents as any
+    const { fraud, revenue, cx } = getAgentOpinionsFromTrace(decision)
     const orders = agentsToOrders(
-      agents?.fraud,
-      agents?.revenue,
-      agents?.cx,
+      fraud,
+      revenue,
+      cx,
       decision.transactionId
     )
     return buildOrderBook(orders)

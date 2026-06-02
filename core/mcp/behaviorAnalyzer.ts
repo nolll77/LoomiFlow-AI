@@ -41,9 +41,9 @@ export function analyzeBehavior(
   // Journey state via derniers event types
   const recentTypes = sorted.slice(-5).map(e => e.type)
   const journeyState = 
-    recentTypes.includes("checkout" as any) ? "converting" :
-    recentTypes.includes("payment_failed" as any) ? "churning" :
-    recentTypes.filter(t => t === ("product_view" as any)).length > 3 ? "evaluating" :
+    recentTypes.includes("checkout") ? "converting" :
+    recentTypes.includes("payment_failed") ? "churning" :
+    recentTypes.filter(t => t === "product_view").length > 3 ? "evaluating" :
     "browsing"
   
   // Device change : comparer deviceId du dernier event

@@ -44,32 +44,19 @@ This document tracks the complete technical debt remediation plan for LoomiFlow 
 |------|-----------------|----------|
 | **PHASE 8: Deprecate V3 Types** | Mark `FraudAgentOutput`, `RevenueAgentOutput`, `CXAgentOutput` as `@deprecated` | Add migration guide comments |
 
-#### Current `as any` Locations (24 Instances After Phase 1)
+#### Current `as any` Locations (Only 2 Legitimate Locations Remain)
 
 **Distribution by file**:
 ```
-core/context/stateBuilder.ts:2           // ctx property access
-core/agents/orchestrator.ts:3            // councils/orchestrator/contextQuality
-core/mcp/traceGraph.ts:1                 // trace.agents (legacy V3 access)
-core/mcp/behaviorAnalyzer.ts:3           // enum casting for journey detection
-app/cockpit/page.tsx:3                   // marketDecision/LoadTestPanel event
-app/api/mcp-test/route.ts:1              // v.ok check
 lib/audioEngine.ts:1                     // WebKit AudioContext (browser API)
-lib/commercePulse.ts:2                   // councils/agents access
-lib/counterfactualEngine.ts:1            // trace.agents (legacy V3 access)
-lib/gpuDecisionMapping.ts:2              // trace.agents/orchestrator (legacy V3)
-lib/incidentReconstructor.ts:1           // trace.agents (legacy V3 access)
-lib/memoryGraph.ts:1                     // trace.agents (legacy V3 access)
-lib/observabilityEnvelope.ts:1           // trace.agents (legacy V3 access)
 server/mcp/client.ts:1                   // toolName enum casting
 ```
 
 **Analysis**:
-- **7 files** accessing `trace.agents` (legacy V3 structure) — need to migrate to `trace.councils`
-- **3 files** with enum/type casting — safe (browser APIs, tool names)
-- **2 files** with proper null checks — lower priority
+- **0 files** accessing `trace.agents` with `as any` (all migrated to typed trace helpers).
+- **2 files** with legitimate low-level casting (browser audio APIs, internal tool name resolution).
 
-**Accumulated Type Debt**: 24 casts across 14 files (increased from 12 due to new hackathon features)
+**Accumulated Type Debt**: 2 safe casts across 2 files (reduced from 24 casts across 14 files).
 
 ---
 

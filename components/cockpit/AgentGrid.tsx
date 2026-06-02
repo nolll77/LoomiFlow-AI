@@ -1,22 +1,37 @@
 "use client"
-import { DecisionTrace, SystemMode } from "@/core/shared/types"
+import { DecisionTrace, SystemMode, getAgentOpinionsFromTrace } from "@/core/shared/types"
 import AgentCard from "./AgentCard"
 
 const DECISION_COLORS: Record<string, string> = {
   BLOCK: "#FF3B3B", ALLOW: "#2EE59D", HOLD: "#FF9F1C", STEP_UP_AUTH: "#4DA3FF", THROTTLE: "#8B5CF6"
 }
 
+import { AgentOutput } from "@/core/shared/types"
+
+function opinionToOutput(op: any, name: "fraud" | "cx" | "revenue"): AgentOutput | null {
+  if (!op) return null
+  return {
+    agentName: name,
+    score: op.score ?? op.confidence ?? 0,
+    confidence: op.confidence ?? 0,
+    dataQuality: op.dataQuality ?? 0,
+    recommendation: op.recommendation ?? "HOLD",
+    reasons: op.reasons ?? op.reasoning ?? [],
+    mcpSourcesUsed: op.dataQualityFlags ?? [],
+    latencyMs: op.latencyMs,
+  }
+}
+
 export default function AgentGrid({ decision, systemMode }: { decision: DecisionTrace | null; systemMode: SystemMode }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents = decision?.agents as any
+  const agents = decision ? getAgentOpinionsFromTrace(decision) : null
   const o = decision?.orchestrator
   return (
     <div className="space-y-2">
       {/* 3 agent cards */}
       <div className="grid grid-cols-3 gap-2">
-        <AgentCard agent={agents?.fraud ?? null} active={systemMode !== "normal"} />
-        <AgentCard agent={agents?.revenue ?? null} active={systemMode !== "normal"} />
-        <AgentCard agent={agents?.cx ?? null} active={systemMode !== "normal"} />
+        <AgentCard agent={opinionToOutput(agents?.fraud, "fraud")} active={systemMode !== "normal"} />
+        <AgentCard agent={opinionToOutput(agents?.revenue, "revenue")} active={systemMode !== "normal"} />
+        <AgentCard agent={opinionToOutput(agents?.cx, "cx")} active={systemMode !== "normal"} />
       </div>
 
       {/* Orchestrator */}

@@ -51,6 +51,8 @@ export interface MCPCustomerContext {
   toolsSkipped?: string[]
   mcpSavedMs?: number
   error?: string
+  ids?: any
+  properties?: any
 }
 
 export interface PayPalEventData {
@@ -162,6 +164,12 @@ export interface DecisionTrace {
   // ── V4 optional ───────────────────────────────────────────
   councils?: Record<string, import("@/core/councils/types").CouncilProposal>
   marketDecision?: import("@/core/orchestration/types").MarketDecision
+  utilityScores?: {
+    risk: number
+    revenue: number
+    customer: number
+    winningCouncil: string
+  }
   executionPlan?: unknown
   businessImpact?: unknown
   executiveSummary?: string

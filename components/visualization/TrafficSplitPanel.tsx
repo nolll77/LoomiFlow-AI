@@ -3,7 +3,7 @@
 // Driven by mcpTrafficController feedback loop
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { DecisionTrace } from "@/core/shared/types"
+import { DecisionTrace, getAgentOpinionsFromTrace } from "@/core/shared/types"
 import { mcpTrafficController } from "@/core/sre/trafficController"
 import { getCanaryPhase } from "@/core/sre/rollback"
 import { trafficSplitToVisual } from "@/lib/gpuDecisionMapping"
@@ -18,17 +18,16 @@ export default function TrafficSplitPanel({ lastDecision }: { lastDecision: Deci
 
   useEffect(() => {
     if (!lastDecision) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const agents = lastDecision.agents as any
-    const orch   = lastDecision.orchestrator as any
+    const { fraud, revenue } = getAgentOpinionsFromTrace(lastDecision)
+    const orch   = lastDecision.orchestrator
 
     const result = mcpTrafficController({
-      fraudScore:    (agents?.fraud?.fraudScore  ?? 0) as number,
-      anomalyScore:  (agents?.fraud?.score       ?? 0) as number,
+      fraudScore:    (fraud?.fraudScore  ?? 0) as number,
+      anomalyScore:  (fraud?.confidence  ?? 0) as number,
       geoRisk:       !!lastDecision.paypalData?.fraudSignals?.geoInconsistency,
       errorRate:     orch?.severity === "critical" ? 0.06 : 0.005,
-      latencyMs:     (agents?.fraud?.latencyMs   ?? 200) as number,
-      revenueImpact: (agents?.revenue?.revenueAtRisk ?? 0) as number,
+      latencyMs:     (fraud?.latencyMs   ?? 200) as number,
+      revenueImpact: (revenue?.revenueAtRisk ?? 0) as number,
     })
 
     setSplit(result.split)

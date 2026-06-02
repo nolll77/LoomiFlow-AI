@@ -51,7 +51,7 @@ function buildCustomerState(
     ltv > 5000 ? "VIP" : ltv > 1000 ? "PREMIUM" : ltv > 0 ? "STANDARD" : "NEW"
 
   // Extraction sécurisée des cookies
-  const rawIds = (ctx as any)?.ids ?? (ctx as any)?.properties?.ids
+  const rawIds = ctx?.ids ?? ctx?.properties?.ids
   const cookieId = safeParseCookie(rawIds)
 
   return {

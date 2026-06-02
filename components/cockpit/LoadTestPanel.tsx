@@ -18,7 +18,7 @@ export default function LoadTestPanel({ onEvent, triggerScenario }: { onEvent: (
   const trigger = async (scenario: LoadTestScenario) => {
     console.log("[LOAD TEST] Triggering:", scenario)
     setRunning(scenario)
-    const result = await runLoadTest(scenario, (e) => onEvent(e as any), { cap: 30, delayMs: 100 })
+    const result = await runLoadTest(scenario, (e) => onEvent(e), { cap: 30, delayMs: 100 })
     setReport(result)
     setRunning(null)
   }

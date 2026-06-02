@@ -3,7 +3,7 @@
 // Fallback to Canvas2D if WebGL not available
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { DecisionTrace, SystemMode } from "@/core/shared/types"
+import { DecisionTrace, SystemMode, getAgentOpinionsFromTrace } from "@/core/shared/types"
 import { decisionToGPUState } from "@/lib/gpuDecisionMapping"
 
 export default function GPUCockpit({
@@ -247,8 +247,7 @@ export default function GPUCockpit({
           color: decision.finalDecision === "BLOCK" ? "#FF3B3B" :
                  decision.finalDecision === "ALLOW" ? "#2EE59D" : "#4DA3FF"
         }}>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {decision.finalDecision} · fraud {(((decision.agents as any)?.fraud?.fraudScore ?? 0) * 100).toFixed(0)}%
+          {decision.finalDecision} · fraud {((getAgentOpinionsFromTrace(decision).fraud.fraudScore ?? 0) * 100).toFixed(0)}%
         </div>
       )}
     </div>

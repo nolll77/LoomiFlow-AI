@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react"
 import { computeTrafficSplit, getTrafficVisualConfig } from "@/core/sre/trafficController"
 import { evaluateRollback, getCanaryPhase } from "@/core/sre/rollback"
-import { DecisionTrace } from "@/core/shared/types"
+import { DecisionTrace, getAgentOpinionsFromTrace } from "@/core/shared/types"
 
 export default function CanaryStatusPanel({ lastDecision }: { lastDecision: DecisionTrace | null }) {
   const [split, setSplit] = useState({ prod: 0.85, canary: 0.10, shadow: 0.05 })
@@ -14,14 +14,13 @@ export default function CanaryStatusPanel({ lastDecision }: { lastDecision: Deci
   useEffect(() => {
     if (!lastDecision) return
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const agents = lastDecision.agents as any
-    const fraudScore = (agents?.fraud?.fraudScore ?? 0) as number
+    const { fraud, revenue } = getAgentOpinionsFromTrace(lastDecision)
+    const fraudScore = (fraud?.fraudScore ?? 0) as number
     const newSplit = computeTrafficSplit({
       fraudScore,
       errorRate: fraudScore > 0.7 ? 0.04 : 0.005,
       latencyMs: fraudScore > 0.7 ? 1800 : 200,
-      revenueImpact: (agents?.revenue?.revenueAtRisk ?? 0) as number,
+      revenueImpact: (revenue?.revenueAtRisk ?? 0) as number,
     })
     setSplit(newSplit)
 

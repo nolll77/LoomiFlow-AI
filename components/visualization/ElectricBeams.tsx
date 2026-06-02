@@ -3,7 +3,7 @@
 // Intensity scales with fraud score and decision severity
 "use client"
 import { useMemo } from "react"
-import { DecisionTrace } from "@/core/shared/types"
+import { DecisionTrace, getAgentOpinionsFromTrace } from "@/core/shared/types"
 
 interface Beam {
   id: string
@@ -27,12 +27,8 @@ export default function ElectricBeams({
   const beams = useMemo<Beam[]>(() => {
     if (!decision) return []
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const a = decision.agents as any
-    const fraud   = a?.fraud   ?? {}
-    const revenue = a?.revenue ?? {}
-    const cx      = a?.cx      ?? {}
-    const fraudScore = (fraud.fraudScore ?? fraud.score ?? 0) as number
+    const { fraud, revenue, cx } = getAgentOpinionsFromTrace(decision)
+    const fraudScore = (fraud.fraudScore ?? fraud.confidence ?? 0) as number
 
     // Agent positions (left third)
     const fraudPos  = { x: width * 0.12, y: height * 0.20 }
@@ -67,30 +63,30 @@ export default function ElectricBeams({
         id: "fraud-orch",
         d: makeCurve(fraudPos, orchPos),
         color: AGENT_COLORS[fraud.recommendation] ?? "#FF3B3B",
-        width: 1 + fraud.score * 2,
+        width: 1 + (fraud.score ?? 0) * 2,
         dashArray: fraudScore > 0.6 ? "4 2" : "8 4",
         animDuration: fraudScore > 0.6 ? "0.8s" : "1.5s",
-        opacity: 0.4 + fraud.score * 0.6,
+        opacity: 0.4 + (fraud.score ?? 0) * 0.6,
       },
       // Revenue → Orchestrator
       {
         id: "revenue-orch",
         d: makeCurve(revenuePos, orchPos),
         color: AGENT_COLORS[revenue.recommendation] ?? "#FF9F1C",
-        width: 1 + revenue.score * 2,
+        width: 1 + (revenue.score ?? 0) * 2,
         dashArray: "6 3",
         animDuration: "1.2s",
-        opacity: 0.4 + revenue.score * 0.5,
+        opacity: 0.4 + (revenue.score ?? 0) * 0.5,
       },
       // CX → Orchestrator
       {
         id: "cx-orch",
         d: makeCurve(cxPos, orchPos),
         color: AGENT_COLORS[cx.recommendation] ?? "#2EE59D",
-        width: 1 + cx.score * 1.5,
+        width: 1 + (cx.score ?? 0) * 1.5,
         dashArray: "5 4",
         animDuration: "1.4s",
-        opacity: 0.3 + cx.score * 0.5,
+        opacity: 0.3 + (cx.score ?? 0) * 0.5,
       },
       // Orchestrator → Decision (thicker, solid)
       {

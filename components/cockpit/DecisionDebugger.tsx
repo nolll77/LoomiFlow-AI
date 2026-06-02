@@ -2,7 +2,7 @@
 // Drawer with full decision trace, WHY button, Memory Graph tabs, audio alerts
 "use client"
 import { useState, useEffect } from "react"
-import { DecisionTrace } from "@/core/shared/types"
+import { DecisionTrace, getAgentOpinionsFromTrace } from "@/core/shared/types"
 import { buildTraceGraph } from "@/core/mcp/traceGraph"
 import { explainAgentDecision, getNodeColor } from "@/lib/memoryGraph"
 import { reconstructIncidentFromTrace } from "@/lib/incidentReconstructor"
@@ -37,9 +37,9 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
     if (!decision || muted) return
     import("@/lib/audioEngine").then(({ playForEvent, unlockAudio }) => {
       unlockAudio().then(() => {
-        const event = decision.finalDecision as any
+        const event = decision.finalDecision
         if (["ALLOW","BLOCK","HOLD","STEP_UP_AUTH","THROTTLE"].includes(event)) {
-          playForEvent(event)
+          playForEvent(event as any)
         }
       })
     }).catch(() => {})
@@ -47,8 +47,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
 
   if (!decision) return null
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents = decision.agents as any
+  const agents = getAgentOpinionsFromTrace(decision)
 
   const mcpCtx = decision.mcpContextSources.length > 0 ? {
     customerId: "", fetchedAt: Date.now(),
@@ -295,12 +294,12 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
 
               {/* ─── TENSIONS ─── */}
               {tab === "tensions" && (() => {
-                const councils = (decision as any).councils as Record<string, { memberOpinions: any[] }> | undefined
-                const market   = (decision as any).marketDecision as { utilityScores?: Record<string, number> } | undefined
-                const revenueAtRisk = (agents?.revenue as any)?.revenueAtRisk ?? 0
-                const customerLtv   = (agents?.revenue as any)?.customerLTV ?? 0
+                const councils = decision.councils
+                const market   = decision.marketDecision
+                const revenueAtRisk = agents?.revenue?.revenueAtRisk ?? 0
+                const customerLtv   = agents?.revenue?.customerLTV ?? 0
 
-                const opinions = extractOpinionsFromTrace({ councils })
+                const opinions = extractOpinionsFromTrace({ councils: councils as any })
                 const disagreements = detectDisagreements(opinions, revenueAtRisk, customerLtv)
 
                 const SEVERITY_STYLE: Record<string, { border: string; bg: string; badge: string; icon: string }> = {
@@ -439,7 +438,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
 
               {/* ─── SCENARIOS ─── */}
               {tab === "scenarios" && (() => {
-                const state = (decision as any).commerceState as CommerceKnowledgeState | undefined
+                const state = decision.commerceState as CommerceKnowledgeState | undefined
                 if (!state) {
                   return (
                     <div className="text-gray-500 text-[11px]">

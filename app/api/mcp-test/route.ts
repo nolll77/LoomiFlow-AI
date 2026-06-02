@@ -20,6 +20,6 @@ export async function GET() {
   const triggers = await listApiTriggers()
   r.apiTriggers = { ok: !triggers.error, latencyMs: triggers.latencyMs, error: triggers.error }
 
-  console.log("[MCP-TEST] Complete:", Object.entries(r).map(([k,v])=>`${k}:${(v as any).ok?'✅':'❌'}`).join(" "))
+  console.log("[MCP-TEST] Complete:", Object.entries(r).map(([k,v])=>`${k}:${v.ok?'✅':'❌'}`).join(" "))
   return NextResponse.json({ status: !whoami.error ? "ok" : "error", results: r })
 }

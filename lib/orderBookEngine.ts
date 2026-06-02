@@ -2,9 +2,9 @@
 import { AgentOrder, OrderBook, FraudAgentOutput, RevenueAgentOutput, CXAgentOutput } from "@/core/shared/types"
 
 export function agentsToOrders(
-  fraud: FraudAgentOutput,
-  revenue: RevenueAgentOutput,
-  cx: CXAgentOutput,
+  fraud: any,
+  revenue: any,
+  cx: any,
   transactionId: string
 ): AgentOrder[] {
   const fraudDecision = fraud.fraudScore > 0.7 ? "BLOCK" : fraud.fraudScore > 0.4 ? "HOLD" : "ALLOW"

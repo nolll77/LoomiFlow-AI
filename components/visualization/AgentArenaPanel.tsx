@@ -3,7 +3,7 @@
 // Visual: colored "storms" that grow/shrink based on agent weight
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { DecisionTrace } from "@/core/shared/types"
+import { DecisionTrace, getAgentOpinionsFromTrace } from "@/core/shared/types"
 import { ArenaFraudAgent, ArenaSREAgent, ArenaRevenueAgent } from "@/core/agents/arenaAgents"
 import { resolveArena, updateArenaWeights, computeArenaRewards } from "@/core/agents/arenaEngine"
 import { arenaToForceFields } from "@/lib/gpuDecisionMapping"
@@ -27,14 +27,16 @@ export default function AgentArenaPanel({ lastDecision }: { lastDecision: Decisi
   useEffect(() => {
     if (!lastDecision) return
 
+    const { fraud, revenue } = getAgentOpinionsFromTrace(lastDecision)
+
     // Run arena with latest event data
     const syntheticEvent = {
       id: lastDecision.transactionId,
       type: "payment_failed" as const,
       timestamp: lastDecision.timestamp,
       customerId: "arena_test",
-      fraudScore: lastDecision.agents.fraud.fraudScore,
-      value: lastDecision.agents.revenue.revenueAtRisk,
+      fraudScore: fraud.fraudScore ?? 0,
+      value: revenue.revenueAtRisk ?? 0,
       mcpContext: { customerId: "", fetchedAt: Date.now() },
     }
 
