@@ -117,10 +117,12 @@ Pour tester et présenter l'intelligence de notre moteur, nous avons rédigé 6 
 
 - [🇬🇧 Lire le README en Anglais](./README.md)
 - [COUNCILS_GOVERNANCE_FR.md](./docs/COUNCILS_GOVERNANCE_FR.md) — Plongez dans la gouvernance des Councils, le calcul de l'utilité et les consensus.
+- [V4_STRUCTURAL_MIGRATION_FR.md](./docs/V4_STRUCTURAL_MIGRATION_FR.md) — Plan détaillé pour migrer proprement de la V3 vers l'architecture V4 native.
 - [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — Schémas complets ASCII et cycles du pipeline.
 - [AGENTS_GUIDE.md](./docs/AGENTS_GUIDE.md) — Détail des agents et matrice de décision.
 - [MCP_GUIDE.md](./docs/MCP_GUIDE.md) — Guide d'intégration Loomi MCP.
 - [MASTER_BUILD_GUIDE.md](./MASTER_BUILD_GUIDE.md) — Guide de compilation complet.
+
 
 ---
 
