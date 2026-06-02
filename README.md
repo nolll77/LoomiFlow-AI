@@ -112,6 +112,18 @@ We have created 6 interactive, detailed scenarios to test and showcase the pipel
 
 ---
 
+## 📚 Documentation
+
+- [🇫🇷 Lisez le README en Français](./README.fr.md)
+- [COUNCILS_GOVERNANCE_EN.md](./docs/COUNCILS_GOVERNANCE_EN.md) — Deep-dive into Councils, utility math, and consensus
+- [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — Full ASCII diagrams + pipeline flows
+- [AGENTS_GUIDE.md](./docs/AGENTS_GUIDE.md) — Agent deep-dive + decision matrix
+- [MCP_GUIDE.md](./docs/MCP_GUIDE.md) — MCP tools + auth + write patterns
+- [MASTER_BUILD_GUIDE.md](./MASTER_BUILD_GUIDE.md) — Complete from-scratch build guide
+- **Sub-READMEs**: [`core/agents`](./core/agents/README.md), [`core/sre`](./core/sre/README.md), [`lib`](./lib/README.md), [`server`](./server/README.md)
+
+---
+
 ## 📈 Information Flow & Dependencies
 
 LoomiFlow orchestrates data through structured pipelines. The following sequence diagram maps the exact lifecycle of a decision trace:
