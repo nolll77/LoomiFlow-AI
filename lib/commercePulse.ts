@@ -5,6 +5,7 @@
 
 import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 import type { DecisionTrace }           from "@/core/shared/types"
+import { getAgentOpinionsFromTrace }    from "@/core/shared/types"
 
 // ─── TYPES ────────────────────────────────────────────────────
 
@@ -36,11 +37,9 @@ function avgFraudFromTraces(traces: DecisionTrace[]): number {
   const recent = traces.slice(-10)
   if (recent.length === 0) return 0.3
   const sum = recent.reduce((acc, t) => {
-    // V4 path: councils.risk.memberOpinions[fraud].fraudScore
-    const councils = (t as any).councils as
-      Record<string, { memberOpinions: Array<{ agentId: string; fraudScore?: number; confidence?: number }> }> | undefined
-    const fraudOp = councils?.risk?.memberOpinions?.find(o => o.agentId === "fraud")
-    const score   = fraudOp?.fraudScore ?? fraudOp?.confidence ?? (t.agents as any)?.fraud?.fraudScore ?? 0.3
+    // V4 path: via getAgentOpinionsFromTrace (reads from councils.risk.memberOpinions)
+    const { fraud: fraudOp } = getAgentOpinionsFromTrace(t)
+    const score = (fraudOp.fraudScore ?? fraudOp.confidence ?? 0.3) as number
     return acc + score
   }, 0)
   return sum / recent.length

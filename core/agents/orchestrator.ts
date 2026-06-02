@@ -5,6 +5,7 @@ import {
   OrchestratorDecision, DecisionTrace, TraceEntry,
   WriteActionResult, ObservabilityEnvelope, AgentMemoryGraph,
 } from "@/core/shared/types"
+import type { ContextQualityReport } from "@/lib/contextQualityScorer"
 import { executeAgentDecisionWrites } from "@/server/bloomreach/writeApi"
 import { getAdaptedThresholds, recordDecision, getLedgerStats } from "@/lib/sessionLedger"
 
@@ -364,7 +365,6 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
   // Heatmap historique — best-effort (ne bloque jamais le pipeline)
   try {
     const { recordHeatmapRow } = await import("@/lib/confidenceHeatmap")
-    // On construit un objet trace minimal pour l'enregistrement
     recordHeatmapRow({
       id: traceId,
       transactionId: event.id,
@@ -372,10 +372,17 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
       finalDecision: marketDecision.finalDecision,
       confidence: marketDecision.confidence,
       timestamp: Date.now(),
-      councils: { risk: riskC, revenue: revenueC, customer: customerC } as any,
+      councils: { risk: riskC, revenue: revenueC, customer: customerC },
       marketDecision,
       agents: { fraud: {}, revenue: {}, cx: {} },
-      orchestrator: {} as any,
+      orchestrator: {
+        finalDecision:    marketDecision.finalDecision as OrchestratorDecision["finalDecision"],
+        confidence:       marketDecision.confidence,
+        severity:         "medium" as const,
+        reasoning:        [],
+        actions:          [],
+        consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
+      },
       consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
       reasoning: [],
       mcpContextSources: [],
@@ -437,11 +444,11 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
   } catch (e) { console.warn("[BRAIN] Narrative generation failed:", e) }
 
   // MCP Context Quality Score — honnêteté sur la qualité des données
-  let contextQuality: unknown
+  let contextQuality: ContextQualityReport | undefined
   try {
     const { scoreContextQuality } = await import("@/lib/contextQualityScorer")
     contextQuality = scoreContextQuality(state)
-    span("CONTEXT_QUALITY_SCORED", { grade: (contextQuality as any).grade, score: (contextQuality as any).overallScore })
+    span("CONTEXT_QUALITY_SCORED", { grade: contextQuality.grade, score: contextQuality.overallScore })
   } catch (e) { console.warn("[BRAIN] Context quality scoring failed:", e) }
 
   return {

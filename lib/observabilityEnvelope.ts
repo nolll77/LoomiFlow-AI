@@ -1,7 +1,7 @@
 // lib/observabilityEnvelope.ts
 // Token cost tracker, latency breakdown, and SRE anomaly detection (E7 spec)
 
-import { DecisionTrace, ObservabilityEnvelope } from "@/core/shared/types"
+import { DecisionTrace, ObservabilityEnvelope, getAgentOpinionsFromTrace } from "@/core/shared/types"
 
 // ─── PRICING MODEL (gpt-4o-mini) ─────────────────────────────
 
@@ -16,17 +16,17 @@ function estimateTokens(text: string): number {
 }
 
 export function estimateTraceTokens(trace: DecisionTrace): { input: number; output: number } {
-  // Input = system prompt + event context + MCP data + 3 agent outputs
+  // Input = system prompt + event context + MCP data + 3 agent opinions
   const inputApprox =
-    200 +                                           // system prompt
-    50 +                                            // event summary
-    trace.mcpContextSources.length * 80 +           // MCP tool results
-    estimateTokens(JSON.stringify(trace.agents))     // agent outputs
+    200 +                                             // system prompt
+    50 +                                              // event summary
+    trace.mcpContextSources.length * 80 +             // MCP tool results
+    estimateTokens(JSON.stringify(trace.councils ?? {}))    // council/agent outputs (V4)
 
   // Output = orchestrator decision JSON
   const outputApprox =
-    estimateTokens(JSON.stringify(trace.orchestrator)) +
-    estimateTokens(trace.reasoning.join(" "))
+    estimateTokens(JSON.stringify(trace.orchestrator ?? {})) +
+    estimateTokens((trace.reasoning ?? []).join(" "))
 
   return { input: inputApprox, output: outputApprox }
 }
@@ -47,12 +47,11 @@ export function buildLatencyBreakdown(
   }
 
   // Synthesize LLM time from agent latencies (parallel, so max of the three)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const a = trace.agents as any
+  const { fraud, revenue, cx } = getAgentOpinionsFromTrace(trace)
   const agentLatencies = [
-    (a?.fraud?.latencyMs   ?? 890) as number,
-    (a?.revenue?.latencyMs ?? 620) as number,
-    (a?.cx?.latencyMs      ?? 510) as number,
+    (fraud.latencyMs   ?? 890) as number,
+    (revenue.latencyMs ?? 620) as number,
+    (cx.latencyMs      ?? 510) as number,
   ]
   grouped.llm = Math.max(...agentLatencies)
   grouped.agents = Math.max(0, grouped.agents - grouped.llm) // avoid double count

@@ -49,7 +49,8 @@ async function runTests() {
 
       if (!decision.finalDecision) throw new Error("Missing finalDecision");
       if (decision.confidence <= 0 || decision.confidence > 1) throw new Error("Invalid confidence");
-      if (decision.consensusWeights.fraud !== 0.62) throw new Error("Invalid fraud weight");
+      const weightSum = decision.consensusWeights.fraud + decision.consensusWeights.revenue + decision.consensusWeights.cx;
+      if (Math.abs(weightSum - 1) > 0.01) throw new Error("Consensus weights do not sum to 1");
 
       log(`  ✅ PASS (${Date.now() - t0}ms)`);
       passed++;

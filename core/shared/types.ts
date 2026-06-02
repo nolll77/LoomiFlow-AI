@@ -160,8 +160,8 @@ export interface DecisionTrace {
   reasoning: string[]
 
   // ── V4 optional ───────────────────────────────────────────
-  councils?: Record<string, unknown>
-  marketDecision?: unknown
+  councils?: Record<string, import("@/core/councils/types").CouncilProposal>
+  marketDecision?: import("@/core/orchestration/types").MarketDecision
   executionPlan?: unknown
   businessImpact?: unknown
   executiveSummary?: string
@@ -364,3 +364,31 @@ export type {
   AgentOpinion,
   ProposedAction,
 } from "@/core/shared/agentTypes"
+
+export type { CouncilProposal } from "@/core/councils/types"
+export type { MarketDecision } from "@/core/orchestration/types"
+
+// ─── TRACE AGENT OPINIONS HELPER ─────────────────────────────
+// Extracts typed AgentOpinion objects from a V4 trace (councils.risk.memberOpinions)
+// with graceful fallback to legacy V3 trace.agents shape.
+import type { AgentOpinion } from "@/core/shared/agentTypes"
+
+export interface TraceAgentOpinions {
+  fraud:   AgentOpinion
+  revenue: AgentOpinion
+  cx:      AgentOpinion
+}
+
+export function getAgentOpinionsFromTrace(trace: DecisionTrace): TraceAgentOpinions {
+  // V4 path: councils.risk.memberOpinions contains all agents
+  const councils = trace.councils as
+    Record<string, { memberOpinions?: AgentOpinion[] }> | undefined
+  const opinions = councils?.risk?.memberOpinions ?? []
+  const find = (id: string): AgentOpinion =>
+    (opinions.find(o => o.agentId === id) ?? (trace.agents[id as keyof typeof trace.agents] as any) ?? {}) as AgentOpinion
+  return {
+    fraud:   find("fraud"),
+    revenue: find("revenue"),
+    cx:      find("cx"),
+  }
+}

@@ -101,7 +101,7 @@ export default function CockpitPage() {
                     impact={state.lastDecision.businessImpact as BusinessImpactSummary}
                     executiveSummary={state.lastDecision.executiveSummary}
                     decision={state.lastDecision.finalDecision}
-                    councilWinner={(state.lastDecision.marketDecision as any)?.winningCouncil ?? "risk"}
+                    councilWinner={state.lastDecision.marketDecision?.winningCouncil ?? "risk"}
                     narrative={state.lastDecision.narrative}
                   />
                 ) : (
@@ -142,7 +142,7 @@ export default function CockpitPage() {
                 {(() => {
                   const impact = state.lastDecision?.businessImpact as BusinessImpactSummary | undefined
                   const summary = state.lastDecision?.executiveSummary
-                  const winner = (state.lastDecision?.marketDecision as any)?.winningCouncil ?? "risk"
+                  const winner = state.lastDecision?.marketDecision?.winningCouncil ?? "risk"
                   if (!impact || !summary) return null
                   return (
                     <BusinessImpactPanel

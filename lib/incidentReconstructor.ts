@@ -1,7 +1,7 @@
 // lib/incidentReconstructor.ts
 // Trace DAG → Root Cause → Narrative (E7 spec)
 
-import { DecisionTrace, TraceEntry } from "@/core/shared/types"
+import { DecisionTrace, TraceEntry, getAgentOpinionsFromTrace } from "@/core/shared/types"
 
 // ─── TYPES ────────────────────────────────────────────────────
 
@@ -72,12 +72,11 @@ export function decisionTraceToSpans(trace: DecisionTrace): SpanNode[] {
   })
 
   // Add synthetic spans for agent outputs
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents = trace.agents as any
+  const { fraud: fraudOp, revenue: revenueOp, cx: cxOp } = getAgentOpinionsFromTrace(trace)
   const agentLatencies = [
-    { name: "fraud_agent_analysis",   service: "fraud-agent",   latencyMs: (agents?.fraud?.latencyMs   ?? 890) as number },
-    { name: "revenue_agent_analysis", service: "revenue-agent", latencyMs: (agents?.revenue?.latencyMs ?? 620) as number },
-    { name: "cx_agent_analysis",      service: "cx-agent",      latencyMs: (agents?.cx?.latencyMs     ?? 510) as number },
+    { name: "fraud_agent_analysis",   service: "fraud-agent",   latencyMs: ((fraudOp.latencyMs   ?? 890)) as number },
+    { name: "revenue_agent_analysis", service: "revenue-agent", latencyMs: ((revenueOp.latencyMs ?? 620)) as number },
+    { name: "cx_agent_analysis",      service: "cx-agent",      latencyMs: ((cxOp.latencyMs      ?? 510)) as number },
   ]
   agentLatencies.forEach(({ name, service, latencyMs }) => {
     spans.push({

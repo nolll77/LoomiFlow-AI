@@ -1,17 +1,13 @@
 // lib/memoryGraph.ts
 // AI Memory Graph — maps MCP tool calls to decision influence weights (E7 spec)
 
-import { DecisionTrace, AgentMemoryGraph, MemoryNode, MemoryEdge } from "@/core/shared/types"
+import { DecisionTrace, AgentMemoryGraph, MemoryNode, MemoryEdge, getAgentOpinionsFromTrace } from "@/core/shared/types"
 
 // ─── BUILDER ──────────────────────────────────────────────────
 
 export function buildAgentMemoryGraph(trace: DecisionTrace): AgentMemoryGraph {
   const { finalDecision, mcpContextSources, confidence, id } = trace
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents = trace.agents as any
-  const fraud   = agents?.fraud   ?? {}
-  const revenue = agents?.revenue ?? {}
-  const cx      = agents?.cx      ?? {}
+  const { fraud, revenue, cx } = getAgentOpinionsFromTrace(trace)
 
   const nodes: MemoryNode[] = [
     // ── Event observation

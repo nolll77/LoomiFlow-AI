@@ -2,7 +2,7 @@
 // Maps agent decisions + fraud scores → GPU visual parameters
 // Used by GPUCockpit, FlowOverlay, AgentArenaPanel
 
-import { DecisionTrace, SystemMode, HeartbeatState } from "@/core/shared/types"
+import { DecisionTrace, SystemMode, HeartbeatState, getAgentOpinionsFromTrace } from "@/core/shared/types"
 
 export interface GPUVisualState {
   // Point cloud
@@ -56,12 +56,10 @@ export function decisionToGPUState(
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agents   = trace.agents as any
-  const orch     = trace.orchestrator as any
-  const fraudScore = (agents?.fraud?.fraudScore ?? 0) as number
+  const { fraud } = getAgentOpinionsFromTrace(trace)
+  const fraudScore = (fraud.fraudScore ?? 0) as number
   const decision   = trace.finalDecision
-  const severity   = (orch?.severity ?? "normal") as string
+  const severity   = trace.orchestrator?.severity ?? "medium"
   const isCritical = severity === "critical"
 
   // Point count scales with activity
