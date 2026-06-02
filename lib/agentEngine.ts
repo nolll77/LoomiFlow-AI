@@ -11,6 +11,7 @@ export function getMockAgentOutputs(event: CommerceEvent) {
     agentName: "fraud",
     score: fraud,
     fraudScore: fraud,
+    dataQuality: 0.8,
     confidence: fraud > 0.7 ? 0.92 : 0.75,
     recommendation: fraud > 0.7 ? "BLOCK" : fraud > 0.4 ? "STEP_UP_AUTH" : "ALLOW",
     signals: [
@@ -29,6 +30,7 @@ export function getMockAgentOutputs(event: CommerceEvent) {
     score: Math.min(1, (ltv / 5000 + value / 1000) / 2),
     revenueAtRisk: value,
     customerLTV: ltv,
+    dataQuality: 0.9,
     confidence: 0.85,
     recommendation: ltv > 1000 || value > 200 ? "ALLOW" : "HOLD",
     discountRecommendation: isVIP ? "10%" : undefined,
@@ -47,6 +49,7 @@ export function getMockAgentOutputs(event: CommerceEvent) {
     score: event.mcpContext?.churnRisk === "high" ? 0.8 : 0.5,
     churnRisk: event.mcpContext?.churnRisk ?? "medium",
     friction: event.mcpContext?.churnRisk === "high" ? "high" : "medium",
+    dataQuality: 0.75,
     confidence: 0.82,
     recommendation: event.mcpContext?.churnRisk === "high" ? "STEP_UP_AUTH" : "HOLD",
     customerMessage: isVIP

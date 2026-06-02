@@ -1,5 +1,6 @@
 // core/agents/fraudAgent.ts
 import { CommerceEvent, MCPCustomerContext, FraudAgentOutput } from "@/core/shared/types"
+import { analyzeBehavior } from "@/core/mcp/behaviorAnalyzer"
 
 function agentLog(name: string, step: string, data?: any) {
   const msg = `[AGENT][${name}][${step}][${new Date().toISOString()}] ${
@@ -22,20 +23,18 @@ export async function runFraudAgent(
   agentLog("FRAUD", "START", { eventType: event.type, customerId: event.customerId })
   const t0 = Date.now()
 
-  // Mock scoring (used when USE_MOCK_AGENTS=true or no OpenAI key)
-  const mockScore = computeMockFraudScore(event, ctx)
-
   let output: FraudAgentOutput
 
   if (useLLM && process.env.OPENAI_API_KEY) {
     try {
-      output = await runFraudLLM(event, ctx, mockScore)
+      const baseScore = computeMockFraudScore(event, ctx)
+      output = await runFraudLLM(event, ctx, baseScore)
     } catch (e) {
       agentLog("FRAUD", "LLM_FALLBACK", { error: String(e) })
-      output = buildMockFraudOutput(event, ctx, mockScore)
+      output = buildMockFraudOutput(event, ctx)
     }
   } else {
-    output = buildMockFraudOutput(event, ctx, mockScore)
+    output = buildMockFraudOutput(event, ctx)
   }
 
   output.latencyMs = Date.now() - t0
@@ -49,15 +48,12 @@ export async function runFraudAgent(
 
 function computeMockFraudScore(event: CommerceEvent, ctx: MCPCustomerContext | null): number {
   let score = 0
-  // PayPal fraud signals
   if (event.paypalData?.fraudSignals?.velocityAnomaly) score += 0.35
   if (event.paypalData?.fraudSignals?.deviceMismatch) score += 0.25
   if (event.paypalData?.fraudSignals?.geoInconsistency) score += 0.25
   if (event.paypalData?.fraudSignals?.riskScore) score += event.paypalData.fraudSignals.riskScore * 0.15
-  // Event type risk
   if (event.type === "payment_failed") score += 0.1
   if (event.type === "fraud_detected") score += 0.4
-  // VIP customers get benefit of doubt
   if (ctx?.tier === "VIP") score *= 0.7
   return Math.min(score, 1)
 }
@@ -65,24 +61,41 @@ function computeMockFraudScore(event: CommerceEvent, ctx: MCPCustomerContext | n
 function buildMockFraudOutput(
   event: CommerceEvent,
   ctx: MCPCustomerContext | null,
-  score: number
+  overrideScore?: number
 ): FraudAgentOutput {
-  const signals: string[] = []
-  if (event.paypalData?.fraudSignals?.velocityAnomaly) signals.push("Velocity anomaly detected")
-  if (event.paypalData?.fraudSignals?.deviceMismatch) signals.push("Device fingerprint mismatch")
-  if (event.paypalData?.fraudSignals?.geoInconsistency) signals.push("Geographic inconsistency")
-  if (score < 0.3) signals.push("Normal behavioral pattern")
+  const fingerprint = analyzeBehavior(ctx?.recentEvents ?? [], event)
 
-  const recommendation = score > 0.7 ? "BLOCK" : score > 0.4 ? "STEP_UP_AUTH" : "ALLOW"
+  const baseFraud = overrideScore ?? computeMockFraudScore(event, ctx)
+  const behavioralBoost = 
+    (fingerprint.velocityScore > 0.7 ? 0.15 : 0) +
+    (fingerprint.deviceChangeDetected ? 0.10 : 0) +
+    (fingerprint.unusualHour ? 0.05 : 0)
+  
+  const enrichedFraudScore = Math.min(1.0, baseFraud + behavioralBoost)
+
+  const signals = [
+    baseFraud > 0.6 && "high_base_fraud_score",
+    fingerprint.velocityScore > 0.7 && "unusual_velocity",
+    fingerprint.deviceChangeDetected && "device_change",
+    fingerprint.unusualHour && "off_hours_activity",
+    fingerprint.journeyState === "churning" && "churn_pattern",
+    event.paypalData?.fraudSignals?.geoInconsistency && "geo_inconsistency"
+  ].filter(Boolean) as string[]
+
+  const recommendation = enrichedFraudScore > 0.85 ? "BLOCK" : enrichedFraudScore > 0.60 ? "STEP_UP_AUTH" : "ALLOW"
+  
+  const baseConfidence = fingerprint.velocityScore > 0.5 ? 0.92 : 0.78
+  const dataQuality = (ctx?.recentEvents?.length ?? 0) > 5 ? 0.9 : 0.5
 
   return {
     agentName: "fraud",
-    score,
-    fraudScore: score,
-    confidence: score > 0.7 ? 0.92 : score > 0.4 ? 0.75 : 0.88,
+    score: enrichedFraudScore,
+    fraudScore: enrichedFraudScore,
+    dataQuality,
+    confidence: Number((dataQuality * baseConfidence).toFixed(2)),
     recommendation,
     signals,
-    reasons: signals,
+    reasons: [...signals, `base=${baseFraud.toFixed(2)} + behavioral=${behavioralBoost.toFixed(2)}`],
     blockPayment: recommendation === "BLOCK",
     mcpSourcesUsed: ctx ? ["get_customer_properties", "list_customer_events"] : [],
     latencyMs: 0,

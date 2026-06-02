@@ -232,7 +232,7 @@ export default function GPUCockpit({
   }
 
   return (
-    <div className="panel-glass rounded-xl overflow-hidden relative">
+    <div className="panel-glass rounded-2xl overflow-hidden relative">
       <div className="absolute top-2 left-3 z-10 flex items-center gap-2">
         <span className="text-[11px] font-bold text-gray-300">GPU COCKPIT</span>
         <span className="text-[9px] text-gray-600">{webglAvailable ? "WebGL" : "Canvas2D"}</span>

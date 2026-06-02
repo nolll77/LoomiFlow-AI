@@ -33,6 +33,7 @@ export const VIP_PAYMENT_FAILURE: CommerceEvent = {
   customerId: DEMO_CUSTOMERS.vip.id,
   value: 249.90,
   currency: "EUR",
+  deviceId: "device_B", // Nouveau device non reconnu
   mcpContext: {
     customerId: DEMO_CUSTOMERS.vip.id,
     tier: "VIP",
@@ -42,7 +43,12 @@ export const VIP_PAYMENT_FAILURE: CommerceEvent = {
     totalOrders: 14,
     categoryPreference: ["premium-fashion"],
     fetchedAt: Date.now(),
-    toolsUsed: ["get_customer_properties", "get_customer_prediction_score"],
+    toolsUsed: ["get_customer_properties", "get_customer_prediction_score", "list_customer_events"],
+    recentEvents: [
+      { id: "v1", type: "product_view", timestamp: Date.now() - 86400000, deviceId: "device_A" },
+      { id: "v2", type: "checkout", timestamp: Date.now() - 80000000, deviceId: "device_A" },
+      { id: "v3", type: "checkout", timestamp: Date.now() - 40000000, deviceId: "device_A" },
+    ]
   },
   paypalData: {
     transactionId: `PAYPAL_TX_${Date.now()}`,
@@ -72,6 +78,7 @@ export const CART_ABANDONMENT: CommerceEvent = {
   timestamp: Date.now(),
   customerId: DEMO_CUSTOMERS.standard.id,
   value: 89.00,
+  deviceId: "device_A",
   mcpContext: {
     customerId: DEMO_CUSTOMERS.standard.id,
     tier: "standard",
@@ -80,7 +87,15 @@ export const CART_ABANDONMENT: CommerceEvent = {
     predictionScore: 0.45,
     totalOrders: 3,
     fetchedAt: Date.now(),
-    toolsUsed: ["get_customer_properties"],
+    toolsUsed: ["get_customer_properties", "list_customer_events"],
+    recentEvents: [
+      { id: "evt1", type: "product_view", timestamp: Date.now() - 60000, deviceId: "device_A" },
+      { id: "evt2", type: "product_view", timestamp: Date.now() - 58000, deviceId: "device_A" },
+      { id: "evt3", type: "checkout_initiated", timestamp: Date.now() - 56000, deviceId: "device_A" },
+      { id: "evt4", type: "payment_failed", timestamp: Date.now() - 54000, deviceId: "device_A" },
+      { id: "evt5", type: "payment_failed", timestamp: Date.now() - 52000, deviceId: "device_A" },
+      { id: "evt6", type: "payment_failed", timestamp: Date.now() - 50000, deviceId: "device_A" },
+    ]
   },
 }
 

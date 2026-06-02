@@ -82,13 +82,46 @@ export function useCockpit() {
     })
   }, [])
 
-  // Trigger a demo scenario
+  // Trigger a demo scenario using SSE (Streaming)
   const triggerScenario = useCallback(async (scenario: string) => {
-    console.log("[COCKPIT] Triggering scenario:", scenario)
+    console.log("[COCKPIT] Triggering scenario (streaming):", scenario)
     try {
       const res = await fetch("/api/simulate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenario }) })
-      const data = await res.json()
-      if (data.trace) injectEvent(data.trace.agents ? { id: data.trace.transactionId, type: "payment_failed", timestamp: data.trace.timestamp, customerId: "demo" } : { id: "demo", type: "payment_failed", timestamp: Date.now(), customerId: "demo" }, data.trace)
+      const reader = res.body?.getReader()
+      if (!reader) return
+
+      const decoder = new TextDecoder()
+      let traceEvent: any = null
+      let partialTrace: any = { agents: {} }
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const lines = decoder.decode(value).split("\n")
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue
+          try {
+            const msg = JSON.parse(line.slice(6))
+            
+            if (msg.type === "event_received") {
+              traceEvent = { id: msg.eventId, type: "payment_failed", timestamp: msg.timestamp, customerId: "demo" }
+              injectEvent(traceEvent, partialTrace)
+            } else if (msg.type === "agent_complete") {
+              partialTrace.agents = { ...partialTrace.agents, [msg.agent]: msg.result }
+              injectEvent(traceEvent, { ...partialTrace })
+            } else if (msg.type === "decision_final") {
+              partialTrace.orchestrator = msg.decision
+              partialTrace.finalDecision = msg.decision.finalDecision
+              partialTrace.confidence = msg.confidence
+              partialTrace.consensusWeights = msg.decision.consensusWeights
+              injectEvent(traceEvent, { ...partialTrace })
+            } else if (msg.type === "trace_complete") {
+              injectEvent(traceEvent, msg.trace)
+            }
+          } catch(e) {}
+        }
+      }
     } catch (e) { console.error("[COCKPIT] Scenario trigger failed:", e) }
   }, [injectEvent])
 

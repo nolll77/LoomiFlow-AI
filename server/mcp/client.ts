@@ -218,6 +218,7 @@ export async function getCustomerFullContext(
     totalOrders: props?.total_orders ?? props?.purchase_count ?? 0,
     categoryPreference: props?.preferred_categories ?? [],
     segmentIds: props?.segment_ids ?? [],
+    recentEvents: eventsResult.status === "fulfilled" ? eventsResult.value.result?.events ?? [] : [],
     fetchedAt: Date.now(),
     latencyMs: Date.now() - t0,
     cacheHit: false,
@@ -236,4 +237,25 @@ export async function getCustomerFullContext(
   })
 
   return ctx
+}
+
+// ─── PREDICTIVE PRE-FETCH CACHE ───────────────────────────────
+
+const prefetchCache = new Map<string, { promise: Promise<MCPCustomerContext>, ts: number }>()
+const PREFETCH_TTL = 8000 // 8s TTL
+
+export function prefetchMCPContext(customerId: string): Promise<MCPCustomerContext> {
+  const cached = prefetchCache.get(customerId)
+  if (cached && Date.now() - cached.ts < PREFETCH_TTL) {
+    console.log(`[MCP] Prefetch cache HIT for ${customerId} — 0ms perceived latency`)
+    return cached.promise
+  }
+  
+  console.log(`[MCP] Prefetch cache MISS for ${customerId} — Starting background fetch`)
+  const promise = getCustomerFullContext(customerId)
+  prefetchCache.set(customerId, { promise, ts: Date.now() })
+  
+  // Auto-cleanup to prevent memory leaks
+  setTimeout(() => prefetchCache.delete(customerId), PREFETCH_TTL)
+  return promise
 }

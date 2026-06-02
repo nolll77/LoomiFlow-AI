@@ -24,7 +24,7 @@ export default function LoadTestPanel({ onEvent, triggerScenario }: { onEvent: (
   }
 
   return (
-    <div className="panel-glass rounded-xl p-3 space-y-2">
+    <div className="panel-glass rounded-2xl p-3 space-y-2">
       <div className="text-[11px] font-bold text-gray-300">SCENARIO SIMULATOR</div>
 
       {/* Demo scenarios */}

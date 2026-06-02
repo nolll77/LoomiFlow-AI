@@ -37,6 +37,14 @@ function buildMockRevenueOutput(
   event: CommerceEvent,
   ctx: MCPCustomerContext | null
 ): RevenueAgentOutput {
+  const fieldsAvailable = [
+    ctx?.ltv != null,
+    ctx?.totalOrders != null,
+    ctx?.tier != null,
+    event.value != null,
+  ].filter(Boolean).length
+  const dataQuality = fieldsAvailable / 4
+
   const ltv = ctx?.ltv ?? 0
   const revenueAtRisk = event.value ?? 0
   const priority = ltv > 2000 ? "critical" : ltv > 1000 ? "high" : revenueAtRisk > 200 ? "medium" : "low"
@@ -46,6 +54,7 @@ function buildMockRevenueOutput(
   if (ltv > 0) reasons.push(`${ctx?.totalOrders ?? "?"} previous orders`)
   if (revenueAtRisk > 0) reasons.push(`€${revenueAtRisk} revenue at immediate risk`)
   if (ctx?.tier === "VIP") reasons.push("VIP tier — prioritize recovery over blocking")
+  reasons.push(`dataQuality=${dataQuality.toFixed(2)}`)
 
   const recommendation = ltv > 1000 || revenueAtRisk > 200 ? "ALLOW" : "HOLD"
   const discount = ltv > 2000 ? "10%" : ltv > 1000 ? "5%" : undefined
@@ -55,7 +64,8 @@ function buildMockRevenueOutput(
     score: Math.min(1, (ltv / 5000 + revenueAtRisk / 1000) / 2),
     revenueAtRisk,
     customerLTV: ltv,
-    confidence: 0.85,
+    dataQuality,
+    confidence: Number((dataQuality * 0.85).toFixed(2)),
     recommendation,
     discountRecommendation: discount,
     revenueRecoveryProbability: discount ? 0.78 : 0.55,

@@ -19,7 +19,7 @@ export default function AgentGrid({ decision, systemMode }: { decision: Decision
 
       {/* Orchestrator */}
       {o && (
-        <div className="panel-glass rounded-xl p-4" style={{ borderColor: `${DECISION_COLORS[o.finalDecision] ?? "#fff"}22` }}>
+        <div className="panel-glass rounded-2xl p-4" style={{ borderColor: `${DECISION_COLORS[o.finalDecision] ?? "#fff"}22` }}>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-gray-300">⚡ ORCHESTRATOR</span>
             <div className="flex items-center gap-2">

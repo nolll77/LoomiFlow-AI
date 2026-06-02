@@ -8,6 +8,15 @@ export type CommerceEventType =
   | "conversion_anomaly"
   | "fraud_detected"
   | "vip_at_risk"
+  | "product_view"
+  | "checkout"
+
+export interface CustomerEvent {
+  id: string
+  type: CommerceEventType
+  timestamp: number
+  deviceId?: string
+}
 
 export interface CommerceEvent {
   id: string
@@ -17,6 +26,7 @@ export interface CommerceEvent {
   value?: number
   currency?: string
   fraudScore?: number
+  deviceId?: string
   mcpContext?: MCPCustomerContext
   paypalData?: PayPalEventData
   metadata?: Record<string, any>
@@ -36,6 +46,7 @@ export interface MCPCustomerContext {
   fetchedAt: number
   latencyMs?: number
   cacheHit?: boolean
+  recentEvents?: CustomerEvent[]
   toolsUsed?: string[]
   error?: string
 }
@@ -61,6 +72,7 @@ export interface AgentOutput {
   agentName: "fraud" | "cx" | "revenue"
   score: number
   confidence: number
+  dataQuality: number
   recommendation: "BLOCK" | "ALLOW" | "HOLD" | "STEP_UP_AUTH" | "THROTTLE"
   reasons: string[]
   mcpSourcesUsed: string[]

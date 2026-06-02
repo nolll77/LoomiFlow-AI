@@ -25,7 +25,7 @@ export default function DecisionOrderBook({ decision }: { decision: DecisionTrac
   }, [decision])
 
   if (!book) return (
-    <div className="panel-glass rounded-xl p-3 opacity-40">
+    <div className="panel-glass rounded-2xl p-3 opacity-40">
       <div className="text-[11px] font-bold text-gray-300 mb-2">ORDER BOOK</div>
       <div className="text-[10px] text-gray-600 text-center py-4">Awaiting decision...</div>
     </div>
@@ -34,7 +34,7 @@ export default function DecisionOrderBook({ decision }: { decision: DecisionTrac
   const sentiment = SENTIMENT_CONFIG[book.marketSentiment]
 
   return (
-    <div className="panel-glass rounded-xl p-3">
+    <div className="panel-glass rounded-2xl p-3">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-gray-300">DECISION ORDER BOOK</span>

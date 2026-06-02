@@ -16,7 +16,7 @@ export default function TimeHeatmap({ events }: { events: CommerceEvent[] }) {
   }, [events])
 
   return (
-    <div className="panel-glass rounded-xl p-3">
+    <div className="panel-glass rounded-2xl p-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[11px] font-bold text-gray-300">TIME HEATMAP</span>
         <span className="text-[10px] text-gray-500">60s window</span>

@@ -73,7 +73,7 @@ export default function TrafficSplitPanel({ lastDecision }: { lastDecision: Deci
   const phase = getCanaryPhase(split)
 
   return (
-    <div className="panel-glass rounded-xl p-3">
+    <div className="panel-glass rounded-2xl p-3">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-gray-300">TRAFFIC SPLIT</span>
         <span className="text-[10px]" style={{

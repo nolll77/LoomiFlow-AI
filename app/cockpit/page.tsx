@@ -8,137 +8,145 @@ import AgentGrid from "@/components/cockpit/AgentGrid"
 import ActionPanel from "@/components/cockpit/ActionPanel"
 import TimeHeatmap from "@/components/cockpit/TimeHeatmap"
 import LoadTestPanel from "@/components/cockpit/LoadTestPanel"
-import HeartbeatBackground from "@/components/cockpit/HeartbeatBackground"
 import ObservabilityMiniPanel from "@/components/cockpit/ObservabilityMiniPanel"
 import DecisionDebugger from "@/components/cockpit/DecisionDebugger"
 import DecisionOrderBook from "@/components/cockpit/DecisionOrderBook"
 import CanaryStatusPanel from "@/components/cockpit/CanaryStatusPanel"
 import MCPStatusCard from "@/components/cockpit/MCPStatusCard"
 import AIConfidenceMeter from "@/components/cockpit/AIConfidenceMeter"
-import GPUCockpit from "@/components/visualization/GPUCockpit"
 import AgentArenaPanel from "@/components/visualization/AgentArenaPanel"
 import TrafficSplitPanel from "@/components/visualization/TrafficSplitPanel"
 import MCPTraceGraph from "@/components/visualization/MCPTraceGraph"
-import ElectricBeams from "@/components/visualization/ElectricBeams"
-import { HEARTBEAT_COLORS } from "@/lib/heartbeat"
+import MemoryGraphVisualizer from "@/components/visualization/MemoryGraphVisualizer"
+type ViewMode = "cockpit" | "arena" | "trace" | "traffic" | "memory"
 
-type ViewMode = "cockpit" | "arena" | "trace" | "traffic"
+const VIEW_LABELS: Record<ViewMode, string> = {
+  cockpit: "⚡ Cockpit",
+  arena: "⚔️ Arena",
+  trace: "🔗 Trace",
+  traffic: "🌊 Traffic",
+  memory: "🧠 Memory",
+}
 
 export default function CockpitPage() {
   const { state, triggerScenario, injectEvent } = useCockpit()
   const [viewMode, setViewMode] = useState<ViewMode>("cockpit")
-  const isBurst = state.heartbeatState === "critical"
 
   return (
-    <div
-      className={`min-h-screen flex flex-col relative ${isBurst ? "burst-mode" : ""}`}
-      style={{ background: HEARTBEAT_COLORS[state.heartbeatState] }}
-    >
-      <HeartbeatBackground score={state.heartbeatScore} state={state.heartbeatState} />
+    <div className="min-h-screen pb-10" style={{ background: "radial-gradient(circle at top, rgba(59,130,246,0.16), transparent 32%), linear-gradient(180deg, #f8fbff 0%, #eef3f8 100%)" }}>
+      <div className="mx-auto max-w-[1600px] px-6 pt-6">
+        <StatusBar
+          connected={state.connected}
+          connectionMode={state.connectionMode}
+          systemMode={state.systemMode}
+          heartbeatState={state.heartbeatState}
+          eventCount={state.events.length}
+        />
 
-      <StatusBar
-        connected={state.connected}
-        connectionMode={state.connectionMode}
-        systemMode={state.systemMode}
-        heartbeatState={state.heartbeatState}
-        eventCount={state.events.length}
-      />
-
-      {/* View mode tabs */}
-      <div className="flex gap-1 px-2 pt-1 border-b border-[#1C2333] relative z-20">
-        {(["cockpit", "arena", "trace", "traffic"] as ViewMode[]).map(m => (
-          <button key={m} onClick={() => setViewMode(m)}
-            className={`text-[10px] px-3 py-1.5 rounded-t border-b-2 transition-all ${
-              viewMode === m ? "border-blue-400 text-blue-300" : "border-transparent text-gray-500 hover:text-gray-300"
-            }`}>
-            {m === "cockpit"  && "⚡ COCKPIT"}
-            {m === "arena"    && "⚔️ ARENA"}
-            {m === "trace"    && "🔗 TRACE"}
-            {m === "traffic"  && "🌊 TRAFFIC"}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex-1 relative z-10 p-2">
-
-        {/* GPU always-on background */}
-        {state.lastDecision && (
-          <div className="absolute top-2 right-2 w-48 z-10 pointer-events-none opacity-60">
-            <GPUCockpit decision={state.lastDecision} systemMode={state.systemMode} height={120} />
-          </div>
-        )}
-
-        {/* ─── COCKPIT VIEW ─── */}
-        {viewMode === "cockpit" && (
-          <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-3 flex flex-col gap-2">
-              <EventStream events={state.events} lastDecision={state.lastDecision} />
-              <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
-              <MCPStatusCard />
+        <div className="mt-6 rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.09)] backdrop-blur-xl">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-[0.35em] text-sky-500">Premium cockpit</div>
+              <div className="text-4xl font-semibold tracking-tight text-slate-900">Design moderne pour l’orchestration IA</div>
+              <p className="max-w-2xl text-sm leading-6 text-slate-600">Un tableau de bord clair, épuré et orienté action pour piloter les décisions, la résilience et la supervision en temps réel.</p>
             </div>
-            <div className="col-span-6 flex flex-col gap-2">
-              {/* Electric beams overlay */}
-              <div className="relative">
-                <AgentGrid decision={state.lastDecision} systemMode={state.systemMode} />
-                {state.lastDecision && (
-                  <div className="absolute inset-0 pointer-events-none">
-                    <ElectricBeams decision={state.lastDecision} width={600} height={220} />
-                  </div>
-                )}
+
+            <div className="grid gap-3 sm:grid-flow-col sm:auto-cols-max">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-sm font-semibold text-slate-900">Événements</div>
+                <div className="mt-1 text-2xl font-bold text-slate-900">{state.events.length}</div>
               </div>
-              <TimeHeatmap events={state.events} />
-              <CanaryStatusPanel lastDecision={state.lastDecision} />
-              <DecisionDebugger decision={state.lastDecision} />
-            </div>
-            <div className="col-span-3 flex flex-col gap-2">
-              <AIConfidenceMeter decision={state.lastDecision} />
-              <ActionPanel decision={state.lastDecision} event={state.lastEvent} />
-              <DecisionOrderBook decision={state.lastDecision} />
-              <ObservabilityMiniPanel decision={state.lastDecision} />
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="text-sm font-semibold text-slate-900">Dernière décision</div>
+                <div className="mt-1 text-2xl font-bold text-slate-900">{state.lastDecision ? state.lastDecision.orchestrator.finalDecision : "Aucune"}</div>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* ─── ARENA VIEW ─── */}
-        {viewMode === "arena" && (
-          <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-8">
-              <AgentArenaPanel lastDecision={state.lastDecision} />
-            </div>
-            <div className="col-span-4 flex flex-col gap-2">
-              <AIConfidenceMeter decision={state.lastDecision} />
-              <DecisionOrderBook decision={state.lastDecision} />
-              <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
-            </div>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {(["cockpit", "arena", "trace", "traffic", "memory"] as ViewMode[]).map(mode => (
+              <button key={mode} onClick={() => setViewMode(mode)}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${viewMode === mode ? "border-slate-900 bg-slate-950 text-white shadow-lg shadow-slate-200/40" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"}`}>
+                {VIEW_LABELS[mode]}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
-        {/* ─── TRACE VIEW ─── */}
-        {viewMode === "trace" && (
-          <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-8">
-              <MCPTraceGraph decision={state.lastDecision} />
-            </div>
-            <div className="col-span-4 flex flex-col gap-2">
-              <DecisionDebugger decision={state.lastDecision} />
-              <ObservabilityMiniPanel decision={state.lastDecision} />
-            </div>
-          </div>
-        )}
+        <div className="mt-8 grid grid-cols-12 gap-5">
+          {viewMode === "cockpit" && (
+            <>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                <EventStream events={state.events} lastDecision={state.lastDecision} />
+                <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
+                <MCPStatusCard />
+              </div>
 
-        {/* ─── TRAFFIC VIEW ─── */}
-        {viewMode === "traffic" && (
-          <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-8">
-              <TrafficSplitPanel lastDecision={state.lastDecision} />
-            </div>
-            <div className="col-span-4 flex flex-col gap-2">
-              <CanaryStatusPanel lastDecision={state.lastDecision} />
-              <MCPStatusCard />
-            </div>
-          </div>
-        )}
+              <div className="col-span-12 xl:col-span-5 flex flex-col gap-5">
+                <AgentGrid decision={state.lastDecision} systemMode={state.systemMode} />
+                <TimeHeatmap events={state.events} />
+                <CanaryStatusPanel lastDecision={state.lastDecision} />
+                <DecisionDebugger decision={state.lastDecision} />
+              </div>
 
+              <div className="col-span-12 xl:col-span-3 flex flex-col gap-5">
+                <AIConfidenceMeter decision={state.lastDecision} />
+                <ActionPanel decision={state.lastDecision} event={state.lastEvent} />
+                <DecisionOrderBook decision={state.lastDecision} />
+                <ObservabilityMiniPanel decision={state.lastDecision} />
+              </div>
+            </>
+          )}
+
+          {viewMode === "arena" && (
+            <>
+              <div className="col-span-12 xl:col-span-8">
+                <AgentArenaPanel lastDecision={state.lastDecision} />
+              </div>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                <AIConfidenceMeter decision={state.lastDecision} />
+                <DecisionOrderBook decision={state.lastDecision} />
+                <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
+              </div>
+            </>
+          )}
+
+          {viewMode === "trace" && (
+            <>
+              <div className="col-span-12 xl:col-span-8">
+                <MCPTraceGraph decision={state.lastDecision} />
+              </div>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                <DecisionDebugger decision={state.lastDecision} />
+                <ObservabilityMiniPanel decision={state.lastDecision} />
+              </div>
+            </>
+          )}
+
+          {viewMode === "traffic" && (
+            <>
+              <div className="col-span-12 xl:col-span-8">
+                <TrafficSplitPanel lastDecision={state.lastDecision} />
+              </div>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                <CanaryStatusPanel lastDecision={state.lastDecision} />
+                <MCPStatusCard />
+              </div>
+            </>
+          )}
+
+          {viewMode === "memory" && (
+            <>
+              <div className="col-span-12 xl:col-span-8">
+                <MemoryGraphVisualizer decision={state.lastDecision} />
+              </div>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                <DecisionDebugger decision={state.lastDecision} />
+                <ObservabilityMiniPanel decision={state.lastDecision} />
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

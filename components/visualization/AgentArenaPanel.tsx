@@ -172,7 +172,7 @@ export default function AgentArenaPanel({ lastDecision }: { lastDecision: Decisi
   }, [arenaResult])
 
   return (
-    <div className="panel-glass rounded-xl overflow-hidden">
+    <div className="panel-glass rounded-2xl overflow-hidden">
       <div className="flex items-center justify-between px-3 pt-3 pb-1">
         <span className="text-[11px] font-bold text-gray-300">AGENT ARENA</span>
         <div className="flex items-center gap-2 text-[10px]">

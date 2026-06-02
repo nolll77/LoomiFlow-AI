@@ -29,6 +29,13 @@ export async function runCXAgent(
 }
 
 function buildMockCXOutput(event: CommerceEvent, ctx: MCPCustomerContext | null): CXAgentOutput {
+  const fieldsAvailable = [
+    ctx?.churnRisk != null,
+    ctx?.tier != null,
+    ctx?.predictionScore != null,
+  ].filter(Boolean).length
+  const dataQuality = fieldsAvailable / 3
+
   const churnRisk = ctx?.churnRisk ?? "medium"
   const tier = ctx?.tier ?? "standard"
 
@@ -36,6 +43,7 @@ function buildMockCXOutput(event: CommerceEvent, ctx: MCPCustomerContext | null)
   if (churnRisk === "high") reasons.push("High churn risk — hard block would likely cause permanent loss")
   if (tier === "VIP") reasons.push("VIP customer — prioritize experience over friction")
   reasons.push("Step-up auth preserves trust while mitigating fraud risk")
+  reasons.push(`dataQuality=${dataQuality.toFixed(2)}`)
 
   const recommendation = churnRisk === "high" ? "STEP_UP_AUTH" : "HOLD"
   const customerMessage = churnRisk === "high"
@@ -47,7 +55,8 @@ function buildMockCXOutput(event: CommerceEvent, ctx: MCPCustomerContext | null)
     score: churnRisk === "high" ? 0.8 : churnRisk === "medium" ? 0.5 : 0.3,
     churnRisk,
     friction: churnRisk === "high" ? "high" : "medium",
-    confidence: 0.82,
+    dataQuality,
+    confidence: Number((dataQuality * 0.82).toFixed(2)),
     recommendation,
     customerMessage,
     escalateToSupport: churnRisk === "high" && tier === "VIP",

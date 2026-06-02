@@ -41,7 +41,7 @@ export default function MCPStatusCard() {
   useEffect(() => { check(); const t = setInterval(check, 30_000); return () => clearInterval(t) }, [])
 
   return (
-    <div className="panel-glass rounded-xl p-3">
+    <div className="panel-glass rounded-2xl p-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[11px] font-bold text-gray-300">LOOMI CONNECT MCP</span>
         <button onClick={check} disabled={checking} className="text-[10px] text-gray-500 hover:text-gray-300">

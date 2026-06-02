@@ -15,7 +15,7 @@ export default function AIConfidenceMeter({ decision }: { decision: DecisionTrac
   const arc = circumference * c
 
   return (
-    <div className="panel-glass rounded-xl p-3 flex flex-col items-center">
+    <div className="panel-glass rounded-2xl p-3 flex flex-col items-center">
       <div className="text-[11px] font-bold text-gray-300 mb-2">AI CONFIDENCE</div>
       <svg width="72" height="72" viewBox="0 0 72 72">
         <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />

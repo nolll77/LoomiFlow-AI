@@ -21,7 +21,7 @@ export default function ObservabilityMiniPanel({ decision }: { decision: Decisio
   const writeOk = decision.writeActions?.filter(a => a.status === "success").length ?? 0
 
   return (
-    <div className="panel-glass rounded-xl p-3 space-y-2.5">
+    <div className="panel-glass rounded-2xl p-3 space-y-2.5">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold text-gray-300">OBSERVABILITY</span>
         {obs && obs.anomalies.length > 0 && (

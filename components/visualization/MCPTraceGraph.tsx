@@ -12,7 +12,7 @@ export default function MCPTraceGraph({ decision }: { decision: DecisionTrace | 
   }, [decision])
 
   if (!graph) return (
-    <div className="panel-glass rounded-xl p-3 opacity-40">
+    <div className="panel-glass rounded-2xl p-3 opacity-40">
       <div className="text-[11px] font-bold text-gray-300 mb-2">MCP TRACE GRAPH</div>
       <div className="text-[10px] text-gray-600 text-center py-4">No trace yet</div>
     </div>
@@ -23,7 +23,7 @@ export default function MCPTraceGraph({ decision }: { decision: DecisionTrace | 
   }
 
   return (
-    <div className="panel-glass rounded-xl p-3">
+    <div className="panel-glass rounded-2xl p-3">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] font-bold text-gray-300">MCP TRACE GRAPH</span>
         <span className="text-[10px] text-gray-500">{graph.nodes.length} nodes · {graph.totalLatencyMs}ms</span>
