@@ -28,7 +28,7 @@ export interface RevenueState {
   revenueAtRisk: number       // valeur de la transaction en cours
   cartValue: number
   recoveryPotential: number   // estimé sur base historique
-  campaignROI: number         // ROI dernier campaign
+  campaignROI: number | null         // ROI dernier campaign (null if EQL running aggregates are unsupported)
   conversionRate: number      // taux actuel du funnel
   aov: number                 // average order value historique
   forecastedLTV: number       // LTV projetée sur 12 mois

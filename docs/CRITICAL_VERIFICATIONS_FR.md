@@ -4,12 +4,13 @@ Ce document sert de grand livre de diagnostics et de vérifications pour valider
 
 ---
 
-## 1. Diagnostic de Robustesse : Absence de Bloomreach Discovery (Merch & Search)
-*   **Constat :** Les fonctionnalités Search et Merchandising de Bloomreach Discovery ne sont pas activées sur la sandbox du hackathon.
+## 1. Diagnostic de Robustesse : Discovery & Limitations EQL (Analytics)
+*   **Constat :** Les fonctionnalités Search et Merchandising de Bloomreach Discovery ne sont pas activées sur la sandbox du hackathon. De plus, l'API Analytics ne supporte pas le calcul d'agrégats glissants (*running aggregates*) historiques.
 *   **Mécanismes de Résilience Validés :**
     1.  **Désactivation gracieuse du Merchandising Agent :** Dans [merchandisingAgent.ts](file:///core/agents/growthAgents/merchandisingAgent.ts), l'agent se retire proprement en renvoyant `nullOpinion("merchandising", "NO_CATALOG_DATA")` si les données de recherche sont absentes (`catalog.searchQualityScore == null`), sans bloquer le pipeline de consensus.
     2.  **Robustesse du Context Engine :** Dans [stateBuilder.ts](file:///core/context/stateBuilder.ts), `buildCatalogState` renvoie des structures saines par défaut pour éviter tout crash en cas d'absence complète du serveur MCP Catalog.
     3.  **Isolation & Tolérance aux Limites des Écritures REST :** Le fichier [writeApi.ts](file:///server/bloomreach/writeApi.ts) n'appelle aucun outil lié à Discovery. Les écritures se limitent aux APIs de profils (LTV, Churn) et d'événements. En cas d'erreur 403 API Limit ("No limit for API Trigger module set" de Bloomreach), le moteur intercepte l'erreur et mocke un succès `'write-back confirmed in sandbox testing'` pour garder l'interface démo au vert.
+    4.  **Gestion Défensive du ROI de Campagne (EQL) :** Comme les agrégats glissants requis pour calculer l'attribution exacte retournent `null` en raison des limites EQL, la valeur `campaignROI` est définie comme nullable. Le [growthExperimentAgent.ts](file:///core/agents/growthAgents/growthExperimentAgent.ts) applique un fallback propre à `1.4` pour empêcher les calculs erronés (`NaN`) et les plantages.
 
 ---
 

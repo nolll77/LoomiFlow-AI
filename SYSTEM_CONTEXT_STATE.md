@@ -182,4 +182,12 @@ LoomiFlow V4 intègre et documente **deux URLs MCP distinctes** pour ses agents 
 *   **Problématique :** Certains scénarios déclenchés par API peuvent renvoyer une erreur `HTTP 403 "No limit for API Trigger module set, contact your CSM"`.
 *   **Solution de Résilience :** Dans [writeApi.ts](file:///server/bloomreach/writeApi.ts), toutes les requêtes d'écriture interceptent l'erreur `403` ou les réponses contenant `"limit"` ou `"csm"`. Le moteur renvoie alors un statut simulé de succès `{ status: "success", details: { info: "write-back confirmed in sandbox testing" } }` pour éviter de bloquer l'expérience utilisateur et assurer une démo fluide et verte dans le cockpit.
 
+---
+
+## 10. Limite EQL Analytics (Agrégats Glissants / campaignROI)
+
+*   **Limitation Technique :** L'outil `execute_analytics` via MCP ne peut pas exécuter de requêtes EQL impliquant des agrégats glissants historiques (comme les attributions complexes). L'API renvoie une valeur `null` ou vide dans ce contexte.
+*   **Solution de Résilience :** Le champ `campaignROI` de l'état partagé `RevenueState` est typé comme nullable. L'agent d'expérimentation de croissance ([growthExperimentAgent.ts](file:///core/agents/growthAgents/growthExperimentAgent.ts)) qui en dépend implémente une logique défensive en se rabattant sur un ROI par défaut de `1.4` s'il est indéfini ou nul, évitant ainsi des erreurs d'évaluation et de consensus.
+
+
 

@@ -14,7 +14,7 @@ export async function growthExperimentAgent(state: CommerceKnowledgeState): Prom
 
   const expectedROI =
     opportunity === "NEW_SEGMENT_CAMPAIGN"    ? revenue.aov * 45 :
-    opportunity === "CAMPAIGN_OPTIMIZATION"   ? revenue.campaignROI * 1.3 :
+    opportunity === "CAMPAIGN_OPTIMIZATION"   ? (revenue.campaignROI ?? 1.4) * 1.3 :
     opportunity === "AB_TEST_SEARCH_RANKING"  ? revenue.aov * 20 : 0
 
   return {

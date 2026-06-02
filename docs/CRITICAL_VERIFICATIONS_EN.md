@@ -4,12 +4,13 @@ This document serves as the central register for diagnostics, verifications, and
 
 ---
 
-## 1. Sandbox Robustness Diagnostic: Absence of Bloomreach Discovery
-*   **Status**: Search and Merchandising features of Bloomreach Discovery are disabled in the hackathon sandbox (`silent-ukulele`).
+## 1. Sandbox Robustness Diagnostic: Discovery & EQL Analytics Limitations
+*   **Status**: Search and Merchandising features of Bloomreach Discovery are disabled in the hackathon sandbox (`silent-ukulele`). Furthermore, the Analytics API does not support historical running aggregates.
 *   **Resilience & Graceful Degradation verified in code**:
     1.  **Merchandising Agent Auto-Disable**: In [merchandisingAgent.ts](file:///core/agents/growthAgents/merchandisingAgent.ts), the agent checks `catalog.searchQualityScore`. If it is `null`, it returns `nullOpinion("merchandising", "NO_CATALOG_DATA")` gracefully, preventing any pipeline crashes.
     2.  **MCP Capability Detection**: In [stateBuilder.ts](file:///core/context/stateBuilder.ts), `buildCatalogState` checks the list of active MCP tools in session. If no search or catalog tools are detected, it dynamically sets `searchQualityScore` to `null`, triggering the agent's graceful fallback.
     3.  **API Write Isolation & 403 Limit Tolerance**: The execution engine in [writeApi.ts](file:///server/bloomreach/writeApi.ts) does not execute any Discovery writes. All writes are isolated to profiles and transaction events. If a 403 API Limit error ("No limit for API Trigger module set" from Bloomreach) is encountered, the write engine catches it, logs a warning, and returns a simulated success state `'write-back confirmed in sandbox testing'` to keep the cockpit UI fully functional and green.
+    4.  **Campaign ROI Defensive Fallback (EQL)**: Since historical running aggregates (required for campaign attribution metrics) return `null` due to API EQL limitations, `campaignROI` is now marked as nullable. The [growthExperimentAgent.ts](file:///core/agents/growthAgents/growthExperimentAgent.ts) uses a clean fallback value of `1.4` to prevent calculation errors (`NaN`) and engine crashes.
 
 ---
 
