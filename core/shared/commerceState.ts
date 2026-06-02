@@ -52,7 +52,7 @@ export interface CatalogState {
   conversionByCategory: Record<string, number>
   stockAlerts: string[]           // produits < 10 unités
   trendingProducts: string[]
-  searchQualityScore: number      // 0-1
+  searchQualityScore: number | null      // 0-1 (null if Discovery features are disabled)
   rankingDrift: number            // écart entre ranking et performance
 }
 

@@ -109,17 +109,22 @@ function buildFraudState(
   }
 }
 
-function buildCatalogState(_ctx: MCPCustomerContext | null): CatalogState {
-  // Données issues MCP catalog — placeholders pour feed réel
+function buildCatalogState(_ctx: MCPCustomerContext | null, toolsUsed: string[]): CatalogState {
+  // Détecte si des outils Bloomreach Discovery (recherche/catalogue) sont actifs dans la session
+  const hasDiscovery = toolsUsed.some(t =>
+    t.includes("search") || t.includes("catalog") || t.includes("product") || t.includes("merch")
+  )
+
   return {
     topUnderperformingProducts: [],
     conversionByCategory:       {},
     stockAlerts:                [],
     trendingProducts:           [],
-    searchQualityScore:         0.75,
-    rankingDrift:               0.12,
+    searchQualityScore:         hasDiscovery ? 0.75 : null,
+    rankingDrift:               hasDiscovery ? 0.12 : 0,
   }
 }
+
 
 function buildCampaignState(_ctx: MCPCustomerContext | null): CampaignState {
   // Données issues MCP campaign — placeholders pour feed réel
@@ -150,15 +155,18 @@ export async function buildCommerceState(
   const fingerprint  = analyzeBehavior(recentEvents, event)
   const stats        = getLedgerStats()
 
+  const finalTools = toolsUsed.length > 0 ? toolsUsed : toolsNeeded
+
   return {
     customer:              buildCustomerState(ctx, fingerprint),
     revenue:               buildRevenueState(ctx, event),
     fraud:                 buildFraudState(ctx, fingerprint, event),
-    catalog:               buildCatalogState(ctx),
+    catalog:               buildCatalogState(ctx, finalTools),
     campaign:              buildCampaignState(ctx),
     event,
-    mcpToolsUsed:          toolsUsed.length > 0 ? toolsUsed : toolsNeeded,
+    mcpToolsUsed:          finalTools,
     contextFetchLatencyMs: Date.now() - t0,
+
     stateBuiltAt:          Date.now(),
     sessionThresholds:     getAdaptedThresholds(),
     sessionLedgerStats:    {
