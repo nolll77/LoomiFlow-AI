@@ -16,8 +16,10 @@ This document serves as the central register for diagnostics, verifications, and
 ## 2. Integration & MCP Authentication (Read-Only)
 *   **Gold Rule**: MCP is used **exclusively for reading data** (context enrichment) to keep response latency below the 1-second mark.
 *   **Verifications**:
-    *   The `mcp-remote` proxy configured via `npm run setup:mcp` correctly manages OAuth tokens and route parameters.
+    *   The `mcp-remote` proxy configured via `npm run setup:mcp` correctly manages OAuth tokens and route parameters for the primary URL `https://loomi-mcp-alpha.bloomreach.com/mcp` (Customer data & profiles).
+    *   A second MCP URL for conversation tools (Shopping / Clarity Search) is configured and documented: `https://uqa.api.exponea.dev/cocoaas/public/api/clarity-search/v1/mcp/019d4917-3c76-7479-9f00-06c620b231bb`. This enables the `Personal Shopper Agent` to query products using the `clarity_search` tool.
     *   If remote MCP servers fail, the `Context Quality Scorer` degrades the context score (Grades A-F) and dynamically adjusts council weights, preventing blind automation errors.
+
 
 ---
 

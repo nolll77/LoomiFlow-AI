@@ -156,3 +156,18 @@ Pour assainir le code et le rendre purement V4 natif, un plan de migration struc
 *   Vérification Compilation : `npm run build`.
 *   Suite de tests complète : `npm run test:all`.
 *   Test rapide en console du pipeline V4 : `npx ts-node scripts/test-pipeline.ts`.
+
+---
+
+## 8. Serveurs MCP & Intégrations URLs
+
+LoomiFlow V4 intègre et documente **deux URLs MCP distinctes** pour ses agents :
+1.  **MCP Loomi Connect (Données Clients & Profils) :**
+    *   *URL :* `https://loomi-mcp-alpha.bloomreach.com/mcp` (sans slash final)
+    *   *Rôle :* Sert de source de vérité pour le `Context Engine` (LTV, Churn score, historique d'événements).
+    *   *Variable d'env :* `MCP_URL`
+2.  **MCP Conversation Tools (Shopping & Catalogue Clarity Search) :**
+    *   *URL :* `https://uqa.api.exponea.dev/cocoaas/public/api/clarity-search/v1/mcp/019d4917-3c76-7479-9f00-06c620b231bb`
+    *   *Rôle :* Permet d'enrichir le `Personal Shopper Agent` avec des requêtes de recherche produits réelles via l'outil `clarity_search`.
+    *   *Variable d'env :* `MCP_CONVERSATION_URL`
+

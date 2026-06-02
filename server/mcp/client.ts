@@ -7,6 +7,10 @@ import { MCPCustomerContext, CommerceEvent } from "@/core/shared/types"
 const MCP_URL = process.env.MCP_URL!
 // Should be: https://loomi-mcp-alpha.bloomreach.com/mcp (NO slash)
 
+const MCP_CONVERSATION_URL = process.env.MCP_CONVERSATION_URL || "https://uqa.api.exponea.dev/cocoaas/public/api/clarity-search/v1/mcp/019d4917-3c76-7479-9f00-06c620b231bb"
+// Conversation tools / Clarity search MCP URL
+
+
 // ─── LOGGING ──────────────────────────────────────────────────
 
 function mcpLog(tool: string, status: "START" | "OK" | "ERROR" | "SLOW", data?: any) {
@@ -189,6 +193,12 @@ export const getRecommendation = (recommendationId: string) =>
 
 export const getCatalog = (catalogId: string) =>
   mcpCall(MCP_URL, "get_catalog", { catalog_id: catalogId, project_id: projectId() })
+
+export const getCatalogClaritySearch = (query: string, customerId: string) =>
+  mcpCall(MCP_CONVERSATION_URL, "clarity_search", {
+    query,
+    customer_id: customerId,
+  })
 
 // ─── SMART ROUTER: FULL CUSTOMER CONTEXT ─────────────────────────
 
