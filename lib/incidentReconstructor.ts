@@ -72,10 +72,12 @@ export function decisionTraceToSpans(trace: DecisionTrace): SpanNode[] {
   })
 
   // Add synthetic spans for agent outputs
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agents = trace.agents as any
   const agentLatencies = [
-    { name: "fraud_agent_analysis", service: "fraud-agent", latencyMs: trace.agents.fraud.latencyMs ?? 890 },
-    { name: "revenue_agent_analysis", service: "revenue-agent", latencyMs: trace.agents.revenue.latencyMs ?? 620 },
-    { name: "cx_agent_analysis", service: "cx-agent", latencyMs: trace.agents.cx.latencyMs ?? 510 },
+    { name: "fraud_agent_analysis",   service: "fraud-agent",   latencyMs: (agents?.fraud?.latencyMs   ?? 890) as number },
+    { name: "revenue_agent_analysis", service: "revenue-agent", latencyMs: (agents?.revenue?.latencyMs ?? 620) as number },
+    { name: "cx_agent_analysis",      service: "cx-agent",      latencyMs: (agents?.cx?.latencyMs     ?? 510) as number },
   ]
   agentLatencies.forEach(({ name, service, latencyMs }) => {
     spans.push({

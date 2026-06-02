@@ -27,10 +27,12 @@ export default function ElectricBeams({
   const beams = useMemo<Beam[]>(() => {
     if (!decision) return []
 
-    const fraud = decision.agents.fraud
-    const revenue = decision.agents.revenue
-    const cx = decision.agents.cx
-    const fraudScore = fraud.fraudScore
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const a = decision.agents as any
+    const fraud   = a?.fraud   ?? {}
+    const revenue = a?.revenue ?? {}
+    const cx      = a?.cx      ?? {}
+    const fraudScore = (fraud.fraudScore ?? fraud.score ?? 0) as number
 
     // Agent positions (left third)
     const fraudPos  = { x: width * 0.12, y: height * 0.20 }

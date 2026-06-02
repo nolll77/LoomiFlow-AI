@@ -2,9 +2,11 @@ import { DecisionTrace, Counterfactual } from "@/core/shared/types"
 
 export function generateCounterfactuals(trace: DecisionTrace): Counterfactual[] {
   const { finalDecision } = trace
-  const fraudScore = trace.agents.fraud.fraudScore ?? 0.5
-  const ltv = trace.agents.revenue.customerLTV ?? 0
-  const revenueAtRisk = trace.agents.revenue.revenueAtRisk ?? 0
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agents = trace.agents as any
+  const fraudScore    = (agents?.fraud?.fraudScore     ?? 0.5) as number
+  const ltv           = (agents?.revenue?.customerLTV  ?? 0)   as number
+  const revenueAtRisk = (agents?.revenue?.revenueAtRisk ?? 0)  as number
   
   const counterfactuals: Counterfactual[] = []
   

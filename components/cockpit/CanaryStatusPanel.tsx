@@ -14,12 +14,14 @@ export default function CanaryStatusPanel({ lastDecision }: { lastDecision: Deci
   useEffect(() => {
     if (!lastDecision) return
 
-    const fraudScore = lastDecision.agents.fraud.fraudScore
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const agents = lastDecision.agents as any
+    const fraudScore = (agents?.fraud?.fraudScore ?? 0) as number
     const newSplit = computeTrafficSplit({
       fraudScore,
       errorRate: fraudScore > 0.7 ? 0.04 : 0.005,
       latencyMs: fraudScore > 0.7 ? 1800 : 200,
-      revenueImpact: lastDecision.agents.revenue.revenueAtRisk,
+      revenueImpact: (agents?.revenue?.revenueAtRisk ?? 0) as number,
     })
     setSplit(newSplit)
 

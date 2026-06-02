@@ -15,10 +15,12 @@ const SENTIMENT_CONFIG = {
 export default function DecisionOrderBook({ decision }: { decision: DecisionTrace | null }) {
   const book = useMemo(() => {
     if (!decision) return null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const agents = decision.agents as any
     const orders = agentsToOrders(
-      decision.agents.fraud,
-      decision.agents.revenue,
-      decision.agents.cx,
+      agents?.fraud,
+      agents?.revenue,
+      agents?.cx,
       decision.transactionId
     )
     return buildOrderBook(orders)

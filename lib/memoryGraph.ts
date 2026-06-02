@@ -6,10 +6,12 @@ import { DecisionTrace, AgentMemoryGraph, MemoryNode, MemoryEdge } from "@/core/
 // ─── BUILDER ──────────────────────────────────────────────────
 
 export function buildAgentMemoryGraph(trace: DecisionTrace): AgentMemoryGraph {
-  const { agents, finalDecision, mcpContextSources, confidence, id } = trace
-  const fraud = agents.fraud
-  const revenue = agents.revenue
-  const cx = agents.cx
+  const { finalDecision, mcpContextSources, confidence, id } = trace
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agents = trace.agents as any
+  const fraud   = agents?.fraud   ?? {}
+  const revenue = agents?.revenue ?? {}
+  const cx      = agents?.cx      ?? {}
 
   const nodes: MemoryNode[] = [
     // ── Event observation
@@ -43,23 +45,23 @@ export function buildAgentMemoryGraph(trace: DecisionTrace): AgentMemoryGraph {
     {
       id: "state_fraud_score",
       type: "state",
-      label: `Fraud Score: ${(fraud.fraudScore * 100).toFixed(0)}%`,
-      value: fraud.fraudScore,
+      label: `Fraud Score: ${((fraud.fraudScore ?? 0) * 100).toFixed(0)}%`,
+      value: (fraud.fraudScore ?? 0) as number,
       timestamp: trace.timestamp - 2500,
       metadata: { source: "fraud-agent" },
     },
     {
       id: "state_ltv",
       type: "state",
-      label: `Customer LTV: €${revenue.customerLTV}`,
-      value: revenue.customerLTV,
+      label: `Customer LTV: €${revenue.customerLTV ?? 0}`,
+      value: (revenue.customerLTV ?? 0) as number,
       timestamp: trace.timestamp - 2200,
       metadata: { source: "revenue-agent" },
     },
     {
       id: "state_churn",
       type: "state",
-      label: `Churn Risk: ${cx.churnRisk}`,
+      label: `Churn Risk: ${cx.churnRisk ?? "unknown"}`,
       timestamp: trace.timestamp - 2000,
       metadata: { source: "cx-agent" },
     },
@@ -69,25 +71,25 @@ export function buildAgentMemoryGraph(trace: DecisionTrace): AgentMemoryGraph {
       id: "agent_fraud",
       type: "observation",
       label: `Fraud Agent → ${fraud.recommendation}`,
-      value: fraud.score,
+      value: (fraud.score ?? 0) as number,
       timestamp: trace.timestamp - 1500,
-      metadata: { source: "fraud-agent", confidence: fraud.confidence },
+      metadata: { source: "fraud-agent", confidence: (fraud.confidence ?? 0) as number },
     },
     {
       id: "agent_revenue",
       type: "observation",
       label: `Revenue Agent → ${revenue.recommendation}`,
-      value: revenue.score,
+      value: (revenue.score ?? 0) as number,
       timestamp: trace.timestamp - 1400,
-      metadata: { source: "revenue-agent", confidence: revenue.confidence },
+      metadata: { source: "revenue-agent", confidence: (revenue.confidence ?? 0) as number },
     },
     {
       id: "agent_cx",
       type: "observation",
       label: `CX Agent → ${cx.recommendation}`,
-      value: cx.score,
+      value: (cx.score ?? 0) as number,
       timestamp: trace.timestamp - 1300,
-      metadata: { source: "cx-agent", confidence: cx.confidence },
+      metadata: { source: "cx-agent", confidence: (cx.confidence ?? 0) as number },
     },
 
     // ── Final decision

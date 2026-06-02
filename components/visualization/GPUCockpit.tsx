@@ -247,7 +247,8 @@ export default function GPUCockpit({
           color: decision.finalDecision === "BLOCK" ? "#FF3B3B" :
                  decision.finalDecision === "ALLOW" ? "#2EE59D" : "#4DA3FF"
         }}>
-          {decision.finalDecision} · fraud {(decision.agents.fraud.fraudScore * 100).toFixed(0)}%
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {decision.finalDecision} · fraud {(((decision.agents as any)?.fraud?.fraudScore ?? 0) * 100).toFixed(0)}%
         </div>
       )}
     </div>

@@ -44,14 +44,18 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
 
   if (!decision) return null
 
-  const graph = buildTraceGraph(decision.mcpContextSources.length > 0 ? {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agents = decision.agents as any
+
+  const mcpCtx = decision.mcpContextSources.length > 0 ? {
     customerId: "", fetchedAt: Date.now(),
     toolsUsed: decision.mcpContextSources,
-    tier: decision.agents.revenue.customerLTV > 1000 ? "VIP" : "standard",
-    ltv: decision.agents.revenue.customerLTV,
-    churnRisk: decision.agents.cx.churnRisk,
-    predictionScore: decision.agents.cx.score,
-  } : null, decision)
+    tier: (agents?.revenue?.customerLTV ?? 0) > 1000 ? "VIP" as const : "standard" as const,
+    ltv: (agents?.revenue?.customerLTV ?? 0) as number,
+    churnRisk: ((agents?.cx?.churnRisk ?? "low") as "low" | "medium" | "high"),
+    predictionScore: (agents?.cx?.score ?? 0) as number,
+  } : null
+  const graph = buildTraceGraph(mcpCtx, decision)
 
   const decisionColor = DECISION_COLORS[decision.finalDecision] ?? "#fff"
 
@@ -238,7 +242,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
               {/* ─── AGENTS ─── */}
               {tab === "agents" && (
                 <div className="space-y-4">
-                  {[decision.agents.fraud, decision.agents.revenue, decision.agents.cx].map(a => (
+                  {[agents?.fraud, agents?.revenue, agents?.cx].filter(Boolean).map((a: any) => (
                     <div key={a.agentName} className="border border-white/10 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-bold text-gray-200 uppercase">{a.agentName} Agent</span>
@@ -251,7 +255,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
                         Score: {(a.score * 100).toFixed(0)}% · Confidence: {(a.confidence * 100).toFixed(0)}% · {a.latencyMs}ms
                       </div>
                       <div className="space-y-1">
-                        {a.reasons.map((r, i) => (
+                        {(a.reasons ?? []).map((r: string, i: number) => (
                           <div key={i} className="text-gray-400 flex gap-1">
                             <span className="text-gray-600">›</span>{r}
                           </div>
@@ -259,7 +263,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
                       </div>
                       {a.mcpSourcesUsed.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-1">
-                          {a.mcpSourcesUsed.map(t => (
+                          {(a.mcpSourcesUsed ?? []).map((t: string) => (
                             <span key={t} className="text-[9px] text-purple-400/80 bg-purple-400/10 rounded px-1.5 py-0.5">{t}</span>
                           ))}
                         </div>

@@ -18,14 +18,17 @@ export default function TrafficSplitPanel({ lastDecision }: { lastDecision: Deci
 
   useEffect(() => {
     if (!lastDecision) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const agents = lastDecision.agents as any
+    const orch   = lastDecision.orchestrator as any
 
     const result = mcpTrafficController({
-      fraudScore:    lastDecision.agents.fraud.fraudScore,
-      anomalyScore:  lastDecision.agents.fraud.score,
+      fraudScore:    (agents?.fraud?.fraudScore  ?? 0) as number,
+      anomalyScore:  (agents?.fraud?.score       ?? 0) as number,
       geoRisk:       !!lastDecision.paypalData?.fraudSignals?.geoInconsistency,
-      errorRate:     lastDecision.orchestrator.severity === "critical" ? 0.06 : 0.005,
-      latencyMs:     lastDecision.agents.fraud.latencyMs ?? 200,
-      revenueImpact: lastDecision.agents.revenue.revenueAtRisk,
+      errorRate:     orch?.severity === "critical" ? 0.06 : 0.005,
+      latencyMs:     (agents?.fraud?.latencyMs   ?? 200) as number,
+      revenueImpact: (agents?.revenue?.revenueAtRisk ?? 0) as number,
     })
 
     setSplit(result.split)

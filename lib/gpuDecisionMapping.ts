@@ -56,9 +56,12 @@ export function decisionToGPUState(
     }
   }
 
-  const fraudScore = trace.agents.fraud.fraudScore
-  const decision = trace.finalDecision
-  const severity = trace.orchestrator.severity
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agents   = trace.agents as any
+  const orch     = trace.orchestrator as any
+  const fraudScore = (agents?.fraud?.fraudScore ?? 0) as number
+  const decision   = trace.finalDecision
+  const severity   = (orch?.severity ?? "normal") as string
   const isCritical = severity === "critical"
 
   // Point count scales with activity

@@ -134,6 +134,22 @@ export default function CockpitPage() {
                 <ActionPanel decision={state.lastDecision} event={state.lastEvent} />
                 <DecisionOrderBook decision={state.lastDecision} />
                 <ObservabilityMiniPanel decision={state.lastDecision} />
+                {/* V4 panels — apparaissent automatiquement quand le Brain est actif */}
+                {(() => {
+                  const impact = state.lastDecision?.businessImpact as BusinessImpactSummary | undefined
+                  const summary = state.lastDecision?.executiveSummary
+                  const winner = (state.lastDecision?.marketDecision as any)?.winningCouncil ?? "risk"
+                  if (!impact || !summary) return null
+                  return (
+                    <BusinessImpactPanel
+                      impact={impact}
+                      executiveSummary={summary}
+                      decision={state.lastDecision!.finalDecision}
+                      councilWinner={winner}
+                    />
+                  )
+                })()}
+                <LearningPanel insights={state.lastDecision?.learningInsights as LearningInsights ?? { ready: false }} />
               </div>
             </>
           )}

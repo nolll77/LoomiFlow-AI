@@ -7,14 +7,16 @@ const DECISION_COLORS: Record<string, string> = {
 }
 
 export default function AgentGrid({ decision, systemMode }: { decision: DecisionTrace | null; systemMode: SystemMode }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agents = decision?.agents as any
   const o = decision?.orchestrator
   return (
     <div className="space-y-2">
       {/* 3 agent cards */}
       <div className="grid grid-cols-3 gap-2">
-        <AgentCard agent={decision?.agents.fraud ?? null} active={systemMode !== "normal"} />
-        <AgentCard agent={decision?.agents.revenue ?? null} active={systemMode !== "normal"} />
-        <AgentCard agent={decision?.agents.cx ?? null} active={systemMode !== "normal"} />
+        <AgentCard agent={agents?.fraud ?? null} active={systemMode !== "normal"} />
+        <AgentCard agent={agents?.revenue ?? null} active={systemMode !== "normal"} />
+        <AgentCard agent={agents?.cx ?? null} active={systemMode !== "normal"} />
       </div>
 
       {/* Orchestrator */}

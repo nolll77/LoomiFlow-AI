@@ -354,3 +354,10 @@ export interface Counterfactual {
   newDecision: string     // décision alternative
   probability: number     // proba que ce scénario se produise (basé sur historique)
 }
+
+// ─── V4 AGENT TYPES — re-exported from core/shared/agentTypes.ts ───────────
+// Importable depuis @/core/shared/types ou @/core/shared/agentTypes (les deux marchent)
+export type {
+  AgentOpinion,
+  ProposedAction,
+} from "@/core/shared/agentTypes"
