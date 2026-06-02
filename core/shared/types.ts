@@ -113,6 +113,17 @@ export interface OrchestratorDecision {
   consensusWeights: { fraud: number; revenue: number; cx: number }
   tradeoffResolved?: string
   revenueAtRisk?: number
+  adaptiveStats?: {
+    blockRate: number
+    avgFraudScore: number
+    thresholds: {
+      fraudBlockThreshold: number
+      fraudStepThreshold: number
+      allowRevenueMin: number
+    }
+    sessionSize: number
+    adaptationActive: boolean
+  }
 }
 
 // ─── DECISION TRACE ──────────────────────────────────────────

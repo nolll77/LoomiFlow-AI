@@ -41,6 +41,7 @@ export default function CockpitPage() {
           systemMode={state.systemMode}
           heartbeatState={state.heartbeatState}
           eventCount={state.events.length}
+          adaptiveStats={state.lastDecision?.orchestrator?.adaptiveStats}
         />
 
         <div className="mt-6 rounded-[32px] border border-slate-200/80 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.09)] backdrop-blur-xl">

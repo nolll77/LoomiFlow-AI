@@ -11,7 +11,9 @@ const MODE_COLORS: Record<SystemMode, string> = {
   explainability: "text-cyan-600",
 }
 
-export default function StatusBar({ connected, connectionMode, systemMode, heartbeatState, eventCount }: { connected: boolean; connectionMode: ConnectionMode; systemMode: SystemMode; heartbeatState: HeartbeatState; eventCount: number }) {
+import { OrchestratorDecision } from "@/core/shared/types"
+
+export default function StatusBar({ connected, connectionMode, systemMode, heartbeatState, eventCount, adaptiveStats }: { connected: boolean; connectionMode: ConnectionMode; systemMode: SystemMode; heartbeatState: HeartbeatState; eventCount: number; adaptiveStats?: OrchestratorDecision["adaptiveStats"] }) {
   return (
     <div className="rounded-[28px] border border-slate-200 bg-white/90 px-6 py-4 shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -19,6 +21,13 @@ export default function StatusBar({ connected, connectionMode, systemMode, heart
           <span className="text-sm font-semibold tracking-[0.2em] text-slate-900">LOOMIFLOW AI</span>
           <span className="text-sm text-slate-500">ACOA v2.0</span>
           <span className="text-sm text-slate-500">Track 6 — Cross‑MCP Orchestration</span>
+          
+          {adaptiveStats && adaptiveStats.adaptationActive && (
+            <span className="ml-2 text-orange-500 font-mono text-[11px] px-2 py-1 bg-orange-500/10 rounded-full flex items-center gap-1 border border-orange-500/20">
+              ⚡ ADAPTIVE — BLOCK THRESHOLD: {adaptiveStats.thresholds.fraudBlockThreshold.toFixed(2)}
+              {adaptiveStats.avgFraudScore > 0.70 ? <span className="ml-1 text-red-500 animate-pulse font-bold">🔴 ATTACK MODE</span> : ""}
+            </span>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
           <span className={MODE_COLORS[systemMode]}>{systemMode.toUpperCase()}</span>

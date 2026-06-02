@@ -5,6 +5,7 @@ import {
   OrchestratorDecision, DecisionTrace, TraceEntry
 } from "@/core/shared/types"
 import { executeAgentDecisionWrites } from "@/server/bloomreach/writeApi"
+import { getAdaptedThresholds, recordDecision, getLedgerStats } from "@/lib/sessionLedger"
 
 function log(step: string, data?: any) {
   const msg = `[ORCHESTRATOR][${step}] ${data ? JSON.stringify(data).slice(0,200) : ""}`
@@ -61,22 +62,26 @@ export function runMockOrchestrator(
 ): OrchestratorDecision {
   // Consensus weights (dynamically adjusted by agent data quality)
   const weights = computeDynamicWeights(fraud, revenue, cx)
+  
+  // Get adaptive thresholds from session ledger
+  const thresholds = getAdaptedThresholds()
 
   // Rule-based resolution
   let finalDecision: OrchestratorDecision["finalDecision"]
   let reasoning: string[] = [
-    `Dynamic weights applied: fraud=${weights.fraud.toFixed(2)}, revenue=${weights.revenue.toFixed(2)}, cx=${weights.cx.toFixed(2)}`
+    `Dynamic weights applied: fraud=${weights.fraud.toFixed(2)}, revenue=${weights.revenue.toFixed(2)}, cx=${weights.cx.toFixed(2)}`,
+    `Adaptive thresholds: block=${thresholds.fraudBlockThreshold.toFixed(2)}, step=${thresholds.fraudStepThreshold.toFixed(2)}`
   ]
   let tradeoffResolved: string | undefined
 
   // Safety first: high fraud with low LTV = block
-  if (fraud.fraudScore > 0.85 && revenue.customerLTV < 500) {
+  if (fraud.fraudScore > thresholds.fraudBlockThreshold && revenue.customerLTV < 500) {
     finalDecision = "BLOCK"
     reasoning.push("High fraud score exceeds safety threshold", "Customer LTV does not justify risk exposure", "Blocking protects platform integrity")
     tradeoffResolved = "fraud_safety_over_revenue"
   }
   // VIP with fraud: step-up auth (Peter Centgraf pattern)
-  else if (fraud.fraudScore > 0.6 && revenue.customerLTV > 1000) {
+  else if (fraud.fraudScore > thresholds.fraudStepThreshold && revenue.customerLTV > 1000) {
     finalDecision = "STEP_UP_AUTH"
     reasoning.push(
       `Fraud score ${fraud.fraudScore.toFixed(2)} exceeds threshold but customer LTV (€${revenue.customerLTV}) justifies recovery`,
@@ -86,7 +91,7 @@ export function runMockOrchestrator(
     tradeoffResolved = "revenue_cx_over_fraud_block"
   }
   // High revenue, low fraud: allow with voucher
-  else if (fraud.fraudScore < 0.4 && revenue.revenueAtRisk > 200) {
+  else if (fraud.fraudScore < 0.4 && revenue.revenueAtRisk > thresholds.allowRevenueMin) {
     finalDecision = "ALLOW"
     reasoning.push(
       "Fraud risk within acceptable range",
@@ -109,6 +114,9 @@ export function runMockOrchestrator(
   }
   if (finalDecision === "BLOCK") actions.push("Block transaction", "Log fraud event for review")
 
+  // Enregistrer pour adaptation future
+  recordDecision(finalDecision, fraud.fraudScore, revenue.customerLTV)
+
   return {
     finalDecision,
     confidence: Math.round((weights.fraud * fraud.confidence + weights.revenue * revenue.confidence + weights.cx * cx.confidence) * 100) / 100,
@@ -119,6 +127,7 @@ export function runMockOrchestrator(
     consensusWeights: weights,
     tradeoffResolved,
     revenueAtRisk: revenue.revenueAtRisk,
+    adaptiveStats: getLedgerStats(),
   }
 }
 
