@@ -165,6 +165,7 @@ export interface DecisionTrace {
   executionPlan?: unknown
   businessImpact?: unknown
   executiveSummary?: string
+  narrative?: string          // Commerce Narrative Engine — histoire en langage naturel
   incidentReconstruction?: unknown
   counterfactuals?: unknown[]
   learningInsights?: unknown

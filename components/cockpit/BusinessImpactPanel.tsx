@@ -1,14 +1,18 @@
 "use client"
 // components/cockpit/BusinessImpactPanel.tsx
 // V4 — La pièce maîtresse de la démo : décision → argent sauvé
+// Évolution A : Commerce Narrative Engine — news ticker en haut du panel
 
+import { useEffect, useRef, useState } from "react"
 import type { BusinessImpactSummary } from "@/core/orchestration/types"
 
 interface Props {
-  impact: BusinessImpactSummary
+  impact:          BusinessImpactSummary
   executiveSummary: string
-  decision: string
-  councilWinner: string
+  decision:        string
+  councilWinner:   string
+  /** Narrative générée par narrativeEngine.ts — optionnel pour compat */
+  narrative?:      string
 }
 
 // ─── KPI CARD ─────────────────────────────────────────────────
@@ -33,7 +37,7 @@ function KpiCard({
   label: string
   value: string
   color: KpiColor
-  icon: string
+  icon:  string
 }) {
   return (
     <div className={`border rounded p-2 ${KPI_COLORS[color]}`}>
@@ -52,6 +56,67 @@ function decisionBadgeClass(decision: string): string {
   return "bg-emerald-900/50 text-emerald-400 border border-emerald-500/30"
 }
 
+// ─── NARRATIVE TICKER ─────────────────────────────────────────
+// Affiche le texte lettre par lettre, façon terminal qui "tape"
+// Puis scroll horizontalement en boucle si le texte dépasse.
+
+function NarrativeTicker({ text }: { text: string }) {
+  const [displayed, setDisplayed] = useState("")
+  const [done, setDone]           = useState(false)
+  const prevText                  = useRef("")
+  const intervalRef               = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (text === prevText.current) return
+    prevText.current = text
+    setDisplayed("")
+    setDone(false)
+
+    let i = 0
+    if (intervalRef.current) clearInterval(intervalRef.current)
+
+    intervalRef.current = setInterval(() => {
+      i++
+      setDisplayed(text.slice(0, i))
+      if (i >= text.length) {
+        setDone(true)
+        clearInterval(intervalRef.current!)
+      }
+    }, 18)  // ~18ms par caractère ≈ 55 chars/s — lisible en démo
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [text])
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-lg border border-emerald-500/40 bg-black/60 px-3 py-2"
+      style={{ minHeight: "3rem" }}
+    >
+      {/* Glow line on top */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
+
+      {/* Label */}
+      <div className="mb-1 flex items-center gap-1.5">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-emerald-500 uppercase">
+          Commerce Narrative
+        </span>
+      </div>
+
+      {/* Typewriter text */}
+      <p className="font-mono text-xs leading-relaxed text-emerald-100">
+        {displayed}
+        {/* Blinking cursor while typing */}
+        {!done && (
+          <span className="ml-0.5 inline-block w-[7px] h-[13px] align-text-bottom bg-emerald-400 animate-[blink_0.7s_step-end_infinite]" />
+        )}
+      </p>
+    </div>
+  )
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────
 
 export function BusinessImpactPanel({
@@ -59,14 +124,18 @@ export function BusinessImpactPanel({
   executiveSummary,
   decision,
   councilWinner,
+  narrative,
 }: Props) {
   const totalPositive =
     impact.fraudPrevented + impact.revenueProtected + impact.revenueGained
 
   // ROI bar segments (% of totalPositive)
-  const fraudPct   = totalPositive > 0 ? (impact.fraudPrevented   / totalPositive) * 100 : 0
-  const protPct    = totalPositive > 0 ? (impact.revenueProtected / totalPositive) * 100 : 0
-  const gainPct    = totalPositive > 0 ? (impact.revenueGained    / totalPositive) * 100 : 0
+  const fraudPct = totalPositive > 0 ? (impact.fraudPrevented   / totalPositive) * 100 : 0
+  const protPct  = totalPositive > 0 ? (impact.revenueProtected / totalPositive) * 100 : 0
+  const gainPct  = totalPositive > 0 ? (impact.revenueGained    / totalPositive) * 100 : 0
+
+  // Use narrative if provided, otherwise fall back to executiveSummary
+  const tickerText = narrative ?? executiveSummary
 
   return (
     <div className="panel-glass border border-emerald-500/30 rounded-xl p-4 flex flex-col gap-3">
@@ -80,6 +149,9 @@ export function BusinessImpactPanel({
           {decision} — {councilWinner.toUpperCase()} COUNCIL
         </span>
       </div>
+
+      {/* Commerce Narrative Ticker — LE MOMENT QUI FAIT DÉCROCHER LES MÂCHOIRES */}
+      {tickerText && <NarrativeTicker text={tickerText} />}
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 gap-2">
@@ -163,13 +235,6 @@ export function BusinessImpactPanel({
             {impact.roiMultiple > 9999 ? ">9999x" : `${impact.roiMultiple.toFixed(0)}x`}
           </span>
         </div>
-      </div>
-
-      {/* Executive Summary */}
-      <div className="bg-slate-900/50 rounded p-2">
-        <p className="text-slate-300 text-xs font-mono leading-relaxed break-words">
-          {executiveSummary}
-        </p>
       </div>
     </div>
   )

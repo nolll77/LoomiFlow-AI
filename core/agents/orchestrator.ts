@@ -404,6 +404,17 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
   let incidentReconstruction: unknown | undefined
   try { const { reconstructIncidentFromTrace } = await import("@/lib/incidentReconstructor"); incidentReconstruction = reconstructIncidentFromTrace(partialTrace) } catch {}
 
+  // Commerce Narrative Engine — histoire en langage naturel pour les jurés business
+  let narrative: string | undefined
+  try {
+    const { generateDecisionNarrative } = await import("@/lib/narrativeEngine")
+    narrative = generateDecisionNarrative(
+      marketDecision,
+      state,
+      marketDecision.executionPlan.businessImpact
+    )
+  } catch (e) { console.warn("[BRAIN] Narrative generation failed:", e) }
+
   return {
     ...partialTrace,
     agents: {
@@ -428,6 +439,7 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
     executionPlan:        marketDecision.executionPlan,
     businessImpact:       marketDecision.executionPlan.businessImpact,
     executiveSummary:     marketDecision.executionPlan.executiveSummary,
+    narrative,
     counterfactuals,
     incidentReconstruction,
     learningInsights:     getLearningInsights(),

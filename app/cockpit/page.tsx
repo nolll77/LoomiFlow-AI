@@ -100,6 +100,7 @@ export default function CockpitPage() {
                     executiveSummary={state.lastDecision.executiveSummary}
                     decision={state.lastDecision.finalDecision}
                     councilWinner={(state.lastDecision.marketDecision as any)?.winningCouncil ?? "risk"}
+                    narrative={state.lastDecision.narrative}
                   />
                 ) : (
                   <div className="panel-glass rounded-xl p-4 border border-slate-700 text-slate-500 text-xs font-mono">
@@ -146,6 +147,7 @@ export default function CockpitPage() {
                       executiveSummary={summary}
                       decision={state.lastDecision!.finalDecision}
                       councilWinner={winner}
+                      narrative={state.lastDecision?.narrative}
                     />
                   )
                 })()}

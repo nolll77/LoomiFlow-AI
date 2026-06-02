@@ -27,6 +27,7 @@ const config: Config = {
       animation: {
         float: "float 6s ease-in-out infinite",
         "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+        blink: "blink 0.7s step-end infinite",
       },
       keyframes: {
         float: {
@@ -36,6 +37,10 @@ const config: Config = {
         "glow-pulse": {
           "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "1" },
+        },
+        blink: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
         },
       },
     },
