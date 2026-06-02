@@ -84,7 +84,11 @@ L'organisation interne de LoomiFlow V4 structure 9 agents spécialisés à trave
  └───────────────────────────────────────────────┘  └────────────────────────────┘
 ```
 
+> [!NOTE]
+> **État de l'implémentation** : Le moteur V4 est entièrement fonctionnel, simulé et prêt pour la démo. Néanmoins, pour préserver la compatibilité avec les composants graphiques existants de la V3, le système fait tourner la V4 en surcouche sur les anciens modèles de données V3 (via des stubs). Pour le plan de nettoyage et de migration vers la V4 native sans dette, consultez le [Plan de migration structurelle V4](./docs/V4_STRUCTURAL_MIGRATION_FR.md).
+
 ---
+
 
 ## ⚡ Nouvelles Fonctionnalités V4 (Évolutions A-G)
 

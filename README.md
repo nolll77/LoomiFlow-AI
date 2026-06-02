@@ -83,7 +83,11 @@ LoomiFlow V4 structure organizes 9 specialized agents across 3 Governance Counci
  └───────────────────────────────────────────────┘  └────────────────────────────┘
 ```
 
+> [!NOTE]
+> **Implementation State**: The V4 engine is fully functional, simulated, and demo-ready. However, to maintain seamless backward compatibility with existing V3 components, the system currently executes V4 logic as an overlay on top of V3 data models (mapped via backward-compatible stubs). For the clean, native V4 migration path, please read the [V4 Structural Migration Blueprint](./docs/V4_STRUCTURAL_MIGRATION_EN.md).
+
 ---
+
 
 ## ⚡ V4 Key Features (Évolutions A-G)
 
