@@ -174,14 +174,6 @@ export default function SequenceDiagramPanel({ lastDecision }: SequenceDiagramPa
                   <div className="text-3xs font-semibold uppercase tracking-wider text-slate-400 mt-0.5">{step.subtitle}</div>
                 </div>
 
-                {/* Animated visual arrow pointing to next node (desktop-only) */}
-                {step.id < 5 && (
-                  <div className="absolute right-[-15px] top-[40px] hidden xl:block">
-                    <svg className={`h-6 w-6 text-slate-300 transition-transform ${isActive ? "translate-x-1 text-slate-600" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                )}
               </div>
 
               {/* Responsive Details / Interactive Tooltip Area */}
