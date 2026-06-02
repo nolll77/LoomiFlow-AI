@@ -19,6 +19,7 @@ Designed for **Bloomreach Loomi Connect Hackathon 2026 (Track 6: Cross-MCP Orche
 5. [📈 Information Flow & Dependencies](#-information-flow-dependencies)
 6. [🏁 Quick Start & Developer Guide](#-quick-start-developer-guide)
 7. [⚙️ SRE & Observability Layer](#%EF%B8%8F-sre-observability-layer)
+8. [📊 Telemetry & Debugging Logs Guide](./docs/LOGGING_AND_DEBUG_GUIDE.md)
 
 ---
 
@@ -219,6 +220,7 @@ LoomiFlow cockpit comes equipped with enterprise-grade monitoring panels:
 ### 🛡️ Sandbox Robustness & Resilience
 *   **Discovery Defenses**: If search/merchandising features are offline in the hackathon sandbox, the `Merchandising Agent` gracefully yields (`NO_CATALOG_DATA`) instead of crashing the multi-agent consensus.
 *   **403 API Trigger Mitigation**: If writes encounter a `HTTP 403 "No limit for API Trigger module set"` error, the write execution engine intercepts it and returns a mock success status logged as `'write-back confirmed in sandbox testing'` to ensure the demo dashboard remains operational and fully green.
+*   **Structured Terminal Telemetry**: For deep troubleshooting or agent assistance, refer to our [Logging & Debugging Guide](./docs/LOGGING_AND_DEBUG_GUIDE.md) detailing all console print prefixes and LLM-copy debug blueprints.
 
 ---
 *Built with ❤️ by Team nöL for the Bloomreach Loomi Connect AI Hackathon 2026. Sandbox: silent-ukulele.*

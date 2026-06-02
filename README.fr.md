@@ -19,6 +19,7 @@ Développé pour le **Hackathon Bloomreach Loomi Connect 2026 (Track 6 : Orchest
 5. [📈 Flux d'Information & Dépendances](#-flux-dinformation-dépendances)
 6. [🏁 Démarrage Rapide](#-démarrage-rapide)
 7. [⚙️ Couche SRE & Observabilité](#%EF%B8%8F-couche-sre-observabilité)
+8. [📊 Guide de Télémétrie & Logs de Débogage](./docs/LOGGING_AND_DEBUG_GUIDE.md)
 
 ---
 
@@ -219,6 +220,7 @@ Le cockpit de LoomiFlow intègre des interfaces d'analyse avancées :
 ### 🛡️ Robustesse et Résilience Sandbox
 *   **Résilience Discovery** : Si les fonctionnalités Search/Merchandising sont désactivées sur la sandbox, le `Merchandising Agent` se désactive proprement (`NO_CATALOG_DATA`) sans perturber le consensus multi-agent.
 *   **Atténuation d'Erreur 403 API Limit** : Si les appels d'écriture rencontrent une erreur `HTTP 403 "No limit for API Trigger module set"`, le moteur intercepte le code retour et mocke un succès `'write-back confirmed in sandbox testing'` pour s'assurer que le tableau de bord démo reste opérationnel et entièrement vert.
+*   **Télémétrie Structurée de Console** : Pour le débogage ou pour alimenter un assistant d'IA, consultez notre [Guide des Logs & Télémétrie](./docs/LOGGING_AND_DEBUG_GUIDE.md) détaillant tous les préfixes de console et exemples prêts à être copiés.
 
 ---
 *Développé avec ❤️ par la Team nöL pour le Hackathon Loomi Connect 2026. Sandbox : silent-ukulele.*
