@@ -4,6 +4,9 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { CockpitState, CommerceEvent, DecisionTrace, ConnectionMode } from "@/core/shared/types"
 import { computeHeartbeat, getHeartbeatState } from "@/lib/heartbeat"
 import type { HeatmapRow } from "@/lib/confidenceHeatmap"
+import { computeCommercePulse } from "@/lib/commercePulse"
+import type { CommercePulse } from "@/lib/commercePulse"
+import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8080"
 const MAX_EVENTS = 50
@@ -16,6 +19,7 @@ export function useCockpit() {
     systemMode: "normal", heartbeatState: "idle", heartbeatScore: 0,
   })
   const [heatmapRows, setHeatmapRows] = useState<HeatmapRow[]>([])
+  const [pulse, setPulse] = useState<CommercePulse | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectRef = useRef<NodeJS.Timeout>()
 
@@ -104,6 +108,20 @@ export function useCockpit() {
         })
       }
     }
+    // Compute Commerce Pulse if commerceState is available
+    if (trace) {
+      const cs = (trace as any).commerceState as CommerceKnowledgeState | undefined
+      if (cs) {
+        // We need the current events list — read via functional updater trick
+        setState(s => {
+          try {
+            const newPulse = computeCommercePulse(cs, s.events.map(() => trace).concat([trace]).slice(-10))
+            setPulse(newPulse)
+          } catch {}
+          return s  // no state change, side-effect only
+        })
+      }
+    }
   }, [])
 
   // Trigger a demo scenario using SSE (Streaming)
@@ -149,5 +167,5 @@ export function useCockpit() {
     } catch (e) { console.error("[COCKPIT] Scenario trigger failed:", e) }
   }, [injectEvent])
 
-  return { state, heatmapRows, injectEvent, triggerScenario }
+  return { state, heatmapRows, pulse, injectEvent, triggerScenario }
 }
