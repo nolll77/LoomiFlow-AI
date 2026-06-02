@@ -27,6 +27,9 @@ export function useCockpit() {
     if (typeof window === "undefined") return
     console.log("[COCKPIT] Connecting to WebSocket:", WS_URL)
 
+    // Trigger a backend wake-up to compile/run server code and start WS server
+    fetch("/api/health").catch(() => {})
+
     try {
       const ws = new WebSocket(WS_URL)
       wsRef.current = ws

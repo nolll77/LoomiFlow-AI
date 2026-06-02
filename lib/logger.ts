@@ -1,19 +1,46 @@
 import pino from "pino"
-import { AsyncLocalStorage } from "async_hooks"
+import type { AsyncLocalStorage as AsyncLocalStorageType } from "async_hooks"
 
 // Storage pour le traceId de corrélation
 export interface LogContextStore {
   traceId?: string
 }
 
-export const logContext = new AsyncLocalStorage<LogContextStore>()
+class MockAsyncLocalStorage<T> {
+  private store: T | undefined
+
+  run<R>(store: T, fn: () => R): R {
+    const old = this.store
+    this.store = store
+    try {
+      return fn()
+    } finally {
+      this.store = old
+    }
+  }
+
+  getStore(): T | undefined {
+    return this.store
+  }
+}
+
+export const logContext: AsyncLocalStorageType<LogContextStore> | MockAsyncLocalStorage<LogContextStore> = typeof window === "undefined"
+  ? (() => {
+      try {
+        const { AsyncLocalStorage } = require("async_hooks")
+        return new AsyncLocalStorage()
+      } catch (e) {
+        return new MockAsyncLocalStorage<LogContextStore>()
+      }
+    })()
+  : new MockAsyncLocalStorage<LogContextStore>()
 
 // Configuration de Pino : sortie standard JSON structurée
 // En environnement de développement, on peut aussi l'enlever ou la rendre plus lisible, mais le JSON brut est requis pour la production.
 export const logger = pino({
-  level: process.env.LOG_LEVEL || "info",
+  level: typeof process !== "undefined" ? process.env.LOG_LEVEL || "info" : "info",
   base: {
-    env: process.env.NODE_ENV || "development",
+    env: typeof process !== "undefined" ? process.env.NODE_ENV || "development" : "development",
     service: "loomiflow-ops",
   },
   timestamp: pino.stdTimeFunctions.isoTime,

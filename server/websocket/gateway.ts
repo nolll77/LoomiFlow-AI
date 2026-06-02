@@ -41,3 +41,13 @@ export function sendWebSocket(message: object) {
 }
 
 export function getConnectedClients() { return clients.size }
+
+// Auto-start the server when imported on the server-side
+if (typeof window === "undefined") {
+  try {
+    const port = typeof process !== "undefined" ? parseInt(process.env.WS_PORT || "8080", 10) : 8080
+    initWebSocketServer(port)
+  } catch (err: any) {
+    console.warn("[WS] Auto-start skipped or failed:", err.message)
+  }
+}

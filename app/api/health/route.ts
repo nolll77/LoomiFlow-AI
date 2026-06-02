@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import "@/server/websocket/gateway"
+
 export async function GET() {
   console.log("[HEALTH] Running...")
   const r: Record<string, any> = {}
