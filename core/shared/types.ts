@@ -316,3 +316,14 @@ export interface CockpitState {
   heartbeatState: HeartbeatState
   heartbeatScore: number
 }
+
+// ─── COUNTERFACTUAL ENGINE ────────────────────────────────────
+
+export interface Counterfactual {
+  variable: string        // "fraudScore" | "customerLTV" | "churnRisk" | "revenueAtRisk"
+  currentValue: number
+  thresholdValue: number  // valeur qui aurait changé la décision
+  deltaRequired: number   // changement nécessaire (+ ou -)
+  newDecision: string     // décision alternative
+  probability: number     // proba que ce scénario se produise (basé sur historique)
+}

@@ -7,8 +7,9 @@ import { buildTraceGraph } from "@/core/mcp/traceGraph"
 import { explainAgentDecision, getNodeColor } from "@/lib/memoryGraph"
 import { reconstructIncidentFromTrace } from "@/lib/incidentReconstructor"
 import { formatCost, formatLatency, ANOMALY_LABELS } from "@/lib/observabilityEnvelope"
+import { generateCounterfactuals } from "@/lib/counterfactualEngine"
 
-type Tab = "timeline" | "memory" | "agents" | "mcp" | "graph" | "writes"
+type Tab = "timeline" | "memory" | "agents" | "mcp" | "graph" | "writes" | "counterfactual"
 
 const DECISION_COLORS: Record<string, string> = {
   BLOCK: "#FF3B3B", ALLOW: "#2EE59D", HOLD: "#FF9F1C",
@@ -63,12 +64,13 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
   const incident = reconstructIncidentFromTrace(decision)
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "timeline", label: "TIMELINE" },
-    { key: "memory",   label: "⊕ MEMORY" },
-    { key: "agents",   label: "AGENTS" },
-    { key: "mcp",      label: "MCP" },
-    { key: "graph",    label: "GRAPH" },
-    { key: "writes",   label: "WRITES" },
+    { key: "timeline",       label: "TIMELINE" },
+    { key: "memory",         label: "⊕ MEMORY" },
+    { key: "agents",         label: "AGENTS" },
+    { key: "counterfactual", label: "WHY NOT?" },
+    { key: "mcp",            label: "MCP" },
+    { key: "graph",          label: "GRAPH" },
+    { key: "writes",         label: "WRITES" },
   ]
 
   return (
@@ -279,6 +281,62 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* ─── COUNTERFACTUALS ─── */}
+              {tab === "counterfactual" && (
+                <div className="space-y-4">
+                  <div className="text-gray-500 mb-2">Counterfactual Engine — What would have changed the decision?</div>
+                  {(() => {
+                    const cfs = generateCounterfactuals(decision)
+                    if (cfs.length === 0) {
+                      return <div className="text-gray-600">No available counterfactuals for this decision.</div>
+                    }
+                    return cfs.map((cf, i) => (
+                      <div key={i} className="border border-white/10 rounded-lg p-4 bg-[#111622] space-y-3 relative overflow-hidden">
+                        {/* Background subtle glow based on new decision */}
+                        <div className="absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 rounded-full" style={{ background: DECISION_COLORS[cf.newDecision] || "#ffffff" }} />
+                        
+                        <div className="flex items-center justify-between relative z-10">
+                          <span className="font-mono text-gray-400 text-[10px]">CF{i+1}</span>
+                          <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded" style={{
+                            background: (DECISION_COLORS[cf.newDecision] || "#fff") + "22",
+                            color: DECISION_COLORS[cf.newDecision] || "#fff"
+                          }}>→ {cf.newDecision}</span>
+                        </div>
+                        
+                        <div className="relative z-10 space-y-1">
+                          <div className="text-gray-300">
+                            If <span className="font-mono text-blue-400">{cf.variable}</span> changed from
+                          </div>
+                          <div className="flex items-center gap-2 text-sm font-mono text-gray-200 bg-black/40 rounded px-3 py-2 w-fit">
+                            <span>{cf.currentValue.toFixed(2)}</span>
+                            <span className="text-gray-600">→</span>
+                            <span className={cf.deltaRequired > 0 ? "text-green-400" : "text-red-400"}>
+                              {cf.thresholdValue.toFixed(2)}
+                            </span>
+                            <span className="text-[10px] text-gray-500 ml-2">
+                              ({cf.deltaRequired > 0 ? "+" : ""}{cf.deltaRequired.toFixed(2)})
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 relative z-10">
+                          <div className="flex justify-between text-[10px] text-gray-500 mb-1">
+                            <span>Probability of occurrence</span>
+                            <span>{(cf.probability * 100).toFixed(0)}%</span>
+                          </div>
+                          <div className="w-full bg-white/5 rounded-full h-1">
+                            <div 
+                              className="h-full rounded-full transition-all bg-gradient-to-r from-blue-500 to-indigo-400"
+                              style={{ width: `${Math.min(100, cf.probability * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  })()}
                 </div>
               )}
 
