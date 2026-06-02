@@ -461,6 +461,7 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
     businessImpact:       marketDecision.executionPlan.businessImpact,
     executiveSummary:     marketDecision.executionPlan.executiveSummary,
     narrative,
+    commerceState:        state,
     counterfactuals,
     incidentReconstruction,
     learningInsights:     getLearningInsights(),

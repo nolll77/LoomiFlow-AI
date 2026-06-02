@@ -9,8 +9,10 @@ import { reconstructIncidentFromTrace } from "@/lib/incidentReconstructor"
 import { formatCost, formatLatency, ANOMALY_LABELS } from "@/lib/observabilityEnvelope"
 import { generateCounterfactuals } from "@/lib/counterfactualEngine"
 import { detectDisagreements, extractOpinionsFromTrace } from "@/lib/disagreementDetector"
+import { simulateAlternatives } from "@/lib/scenarioSimulator"
+import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
 
-type Tab = "timeline" | "memory" | "agents" | "tensions" | "mcp" | "graph" | "writes" | "counterfactual"
+type Tab = "timeline" | "memory" | "agents" | "tensions" | "scenarios" | "mcp" | "graph" | "writes" | "counterfactual"
 
 const DECISION_COLORS: Record<string, string> = {
   BLOCK: "#FF3B3B", ALLOW: "#2EE59D", HOLD: "#FF9F1C",
@@ -73,6 +75,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
     { key: "memory",         label: "⊕ MEMORY" },
     { key: "agents",         label: "AGENTS" },
     { key: "tensions",       label: "⚡ TENSIONS" },
+    { key: "scenarios",      label: "▦ SCENARIOS" },
     { key: "counterfactual", label: "WHY NOT?" },
     { key: "mcp",            label: "MCP" },
     { key: "graph",          label: "GRAPH" },
@@ -430,6 +433,131 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
                         </div>
                       </div>
                     )}
+                  </div>
+                )
+              })()}
+
+              {/* ─── SCENARIOS ─── */}
+              {tab === "scenarios" && (() => {
+                const state = (decision as any).commerceState as CommerceKnowledgeState | undefined
+                if (!state) {
+                  return (
+                    <div className="text-gray-500 text-[11px]">
+                      Scenario data not available — trigger a new event to populate.
+                    </div>
+                  )
+                }
+
+                const scenarios = simulateAlternatives(decision.finalDecision, state)
+
+                const VERDICT_STYLE: Record<string, { color: string; bg: string }> = {
+                  OPTIMAL:      { color: "text-emerald-400", bg: "bg-emerald-500/15" },
+                  RISKY:        { color: "text-red-400",     bg: "bg-red-500/15" },
+                  CONSERVATIVE: { color: "text-blue-400",    bg: "bg-blue-500/15" },
+                  SUBOPTIMAL:   { color: "text-yellow-400",  bg: "bg-yellow-500/15" },
+                }
+
+                const METRIC_LABELS = [
+                  { key: "probability",      label: "Best choice",   fmt: (v: number) => `${(v*100).toFixed(0)}%`,   color: "#a78bfa" },
+                  { key: "expectedRevenue",  label: "Exp. Revenue",  fmt: (v: number) => `€${v.toFixed(0)}`,         color: "#10b981" },
+                  { key: "fraudRisk",        label: "Fraud Risk",    fmt: (v: number) => `${(v*100).toFixed(0)}%`,   color: "#ef4444" },
+                  { key: "churnRisk",        label: "Churn Risk",    fmt: (v: number) => `${(v*100).toFixed(0)}%`,   color: "#f97316" },
+                  { key: "customerFriction", label: "Friction",      fmt: (v: number) => `${(v*100).toFixed(0)}%`,   color: "#60a5fa" },
+                ] as const
+
+                return (
+                  <div className="space-y-4">
+                    <div className="text-gray-500 text-[10px]">
+                      Predictive simulation — what would have happened with each alternative decision.
+                    </div>
+
+                    {/* Comparative cards */}
+                    <div className="space-y-2">
+                      {scenarios.map((s, i) => {
+                        const vs = VERDICT_STYLE[s.verdict]
+                        return (
+                          <div
+                            key={i}
+                            className={`rounded-lg border p-3 space-y-2 ${
+                              s.isActual
+                                ? "border-blue-400/50 bg-blue-400/8 ring-1 ring-blue-400/30"
+                                : "border-white/8 bg-white/3"
+                            }`}
+                          >
+                            {/* Decision header */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="font-mono font-bold text-[11px] px-2 py-0.5 rounded"
+                                  style={{
+                                    background: (DECISION_COLORS[s.decision] ?? "#888") + "25",
+                                    color: DECISION_COLORS[s.decision] ?? "#ccc",
+                                  }}
+                                >
+                                  {s.decision}
+                                </span>
+                                {s.isActual && (
+                                  <span className="text-[9px] font-mono text-blue-400 bg-blue-400/15 px-1.5 py-0.5 rounded">
+                                    CHOSEN
+                                  </span>
+                                )}
+                              </div>
+                              <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded ${vs.bg} ${vs.color}`}>
+                                {s.verdict}
+                              </span>
+                            </div>
+
+                            {/* Probability bar */}
+                            <div>
+                              <div className="flex justify-between text-[9px] text-gray-600 mb-0.5">
+                                <span>Best choice probability</span>
+                                <span className="text-gray-400 font-mono">{(s.probability * 100).toFixed(0)}%</span>
+                              </div>
+                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{
+                                    width: `${s.probability * 100}%`,
+                                    background: s.isActual ? "#60a5fa" : "#6366f1",
+                                    opacity: s.isActual ? 1 : 0.5,
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* 5-metric mini-grid */}
+                            <div className="grid grid-cols-5 gap-1 pt-1">
+                              {METRIC_LABELS.map(m => {
+                                const raw = s[m.key] as number
+                                return (
+                                  <div key={m.key} className="flex flex-col items-center gap-0.5">
+                                    <span className="text-[8px] text-gray-600 text-center leading-tight">{m.label}</span>
+                                    <span
+                                      className="text-[10px] font-mono font-bold"
+                                      style={{ color: m.color }}
+                                    >
+                                      {m.fmt(raw)}
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+
+                            {/* CI band (only for revenue > 0) */}
+                            {s.expectedRevenue > 0 && (
+                              <div className="text-[9px] text-gray-600 font-mono">
+                                90% CI: [€{s.confidenceInterval[0].toFixed(0)} — €{s.confidenceInterval[1].toFixed(0)}]
+                              </div>
+                            )}
+
+                            {/* Reasoning */}
+                            <p className="text-[10px] text-gray-400 italic leading-relaxed">
+                              {s.reasoning}
+                            </p>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               })()}
