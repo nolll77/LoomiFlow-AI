@@ -8,8 +8,9 @@ import { explainAgentDecision, getNodeColor } from "@/lib/memoryGraph"
 import { reconstructIncidentFromTrace } from "@/lib/incidentReconstructor"
 import { formatCost, formatLatency, ANOMALY_LABELS } from "@/lib/observabilityEnvelope"
 import { generateCounterfactuals } from "@/lib/counterfactualEngine"
+import { detectDisagreements, extractOpinionsFromTrace } from "@/lib/disagreementDetector"
 
-type Tab = "timeline" | "memory" | "agents" | "mcp" | "graph" | "writes" | "counterfactual"
+type Tab = "timeline" | "memory" | "agents" | "tensions" | "mcp" | "graph" | "writes" | "counterfactual"
 
 const DECISION_COLORS: Record<string, string> = {
   BLOCK: "#FF3B3B", ALLOW: "#2EE59D", HOLD: "#FF9F1C",
@@ -71,6 +72,7 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
     { key: "timeline",       label: "TIMELINE" },
     { key: "memory",         label: "⊕ MEMORY" },
     { key: "agents",         label: "AGENTS" },
+    { key: "tensions",       label: "⚡ TENSIONS" },
     { key: "counterfactual", label: "WHY NOT?" },
     { key: "mcp",            label: "MCP" },
     { key: "graph",          label: "GRAPH" },
@@ -287,6 +289,150 @@ export default function DecisionDebugger({ decision }: { decision: DecisionTrace
                   </div>
                 </div>
               )}
+
+              {/* ─── TENSIONS ─── */}
+              {tab === "tensions" && (() => {
+                const councils = (decision as any).councils as Record<string, { memberOpinions: any[] }> | undefined
+                const market   = (decision as any).marketDecision as { utilityScores?: Record<string, number> } | undefined
+                const revenueAtRisk = (agents?.revenue as any)?.revenueAtRisk ?? 0
+                const customerLtv   = (agents?.revenue as any)?.customerLTV ?? 0
+
+                const opinions = extractOpinionsFromTrace({ councils })
+                const disagreements = detectDisagreements(opinions, revenueAtRisk, customerLtv)
+
+                const SEVERITY_STYLE: Record<string, { border: string; bg: string; badge: string; icon: string }> = {
+                  CRITICAL: { border: "border-red-500/40",    bg: "bg-red-500/8",    badge: "bg-red-500/20 text-red-400",    icon: "🚨" },
+                  HIGH:     { border: "border-orange-500/40", bg: "bg-orange-500/8", badge: "bg-orange-500/20 text-orange-400", icon: "⚡" },
+                  MEDIUM:   { border: "border-yellow-500/40", bg: "bg-yellow-500/8", badge: "bg-yellow-500/20 text-yellow-400", icon: "⚠" },
+                  LOW:      { border: "border-slate-500/30",  bg: "bg-slate-800/40", badge: "bg-slate-700 text-slate-400",     icon: "·" },
+                }
+
+                return (
+                  <div className="space-y-3">
+                    <div className="text-gray-500 text-[10px] mb-2">
+                      {disagreements.length === 0
+                        ? "No significant tensions detected — agents are in consensus."
+                        : `${disagreements.length} tension${disagreements.length > 1 ? "s" : ""} detected across ${opinions.length} active agents.`}
+                    </div>
+
+                    {/* Utility scores bar (Opinion Market output) */}
+                    {market?.utilityScores && (
+                      <div className="border border-white/5 rounded-lg p-3 space-y-1.5">
+                        <div className="text-[10px] text-gray-600 uppercase tracking-widest mb-2">Opinion Market — Utility Scores</div>
+                        {Object.entries(market.utilityScores).map(([council, score]) => (
+                          <div key={council} className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono w-16 text-gray-500">{council}</span>
+                            <div className="flex-1 bg-white/5 rounded-full h-1.5">
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                  width: `${(score * 100).toFixed(0)}%`,
+                                  background: council === "risk" ? "#ef4444" : council === "revenue" ? "#10b981" : "#3b82f6",
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-mono text-gray-400 w-10 text-right">{(score * 100).toFixed(0)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {disagreements.map((d, i) => {
+                      const style = SEVERITY_STYLE[d.severity]
+                      return (
+                        <div key={i} className={`border rounded-lg p-3 space-y-2 ${style.border} ${style.bg}`}>
+                          {/* Header */}
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${style.badge}`}>
+                              {style.icon} {d.severity} TENSION
+                            </span>
+                            <span className="text-[10px] font-mono text-gray-500">
+                              tension score: {(d.tensionScore * 100).toFixed(0)}%
+                            </span>
+                          </div>
+
+                          {/* Agent pair */}
+                          <div className="flex items-center gap-2 font-mono text-[11px]">
+                            <span className="text-gray-200">{d.agents[0]}</span>
+                            <span className="text-gray-500">
+                              ({(d.confidences[0] * 100).toFixed(0)}%)
+                            </span>
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[10px]"
+                              style={{
+                                background: (DECISION_COLORS[d.recommendations[0]] ?? "#888") + "33",
+                                color: DECISION_COLORS[d.recommendations[0]] ?? "#aaa",
+                              }}
+                            >
+                              {d.recommendations[0]}
+                            </span>
+
+                            <span className="text-gray-600 text-xs">←→</span>
+
+                            <span className="text-gray-200">{d.agents[1]}</span>
+                            <span className="text-gray-500">
+                              ({(d.confidences[1] * 100).toFixed(0)}%)
+                            </span>
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[10px]"
+                              style={{
+                                background: (DECISION_COLORS[d.recommendations[1]] ?? "#888") + "33",
+                                color: DECISION_COLORS[d.recommendations[1]] ?? "#aaa",
+                              }}
+                            >
+                              {d.recommendations[1]}
+                            </span>
+                          </div>
+
+                          {/* Tension bar */}
+                          <div>
+                            <div className="flex justify-between text-[9px] text-gray-600 mb-0.5">
+                              <span>{d.recommendations[0]}</span>
+                              <span>{d.recommendations[1]}</span>
+                            </div>
+                            <div className="relative h-1.5 rounded-full overflow-hidden bg-white/5">
+                              <div
+                                className="absolute left-0 h-full rounded-l-full"
+                                style={{
+                                  width: `${(d.confidences[0] / (d.confidences[0] + d.confidences[1])) * 100}%`,
+                                  background: DECISION_COLORS[d.recommendations[0]] ?? "#888",
+                                  opacity: 0.7,
+                                }}
+                              />
+                              <div
+                                className="absolute right-0 h-full rounded-r-full"
+                                style={{
+                                  width: `${(d.confidences[1] / (d.confidences[0] + d.confidences[1])) * 100}%`,
+                                  background: DECISION_COLORS[d.recommendations[1]] ?? "#888",
+                                  opacity: 0.7,
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Stake + narrative */}
+                          <div className="text-[10px] text-gray-500">
+                            <span className="text-yellow-400 font-mono">€{d.businessStake.toFixed(0)} at stake</span>
+                          </div>
+                          <p className="text-[10px] text-gray-300 leading-relaxed italic">
+                            &ldquo;{d.narrativeConflict}&rdquo;
+                          </p>
+                        </div>
+                      )
+                    })}
+
+                    {disagreements.length === 0 && opinions.length > 0 && (
+                      <div className="border border-emerald-500/20 rounded-lg p-3 bg-emerald-500/5">
+                        <div className="text-emerald-400 font-mono text-[11px] font-bold mb-1">✓ Consensus reached</div>
+                        <div className="text-gray-500 text-[10px]">
+                          All {opinions.length} agents aligned on {decision.finalDecision}.
+                          No significant opposing signals detected.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
 
               {/* ─── COUNTERFACTUALS ─── */}
               {tab === "counterfactual" && (
