@@ -1,5 +1,8 @@
 // core/agents/cxAgent.ts
 import { CommerceEvent, MCPCustomerContext, CXAgentOutput } from "@/core/shared/types"
+// V4
+import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
+import type { AgentOpinion } from "@/core/shared/agentTypes"
 
 function log(step: string, data?: any) {
   const msg = `[AGENT][CX][${step}] ${data ? JSON.stringify(data).slice(0,150) : ""}`
@@ -81,4 +84,46 @@ async function runCXLLM(event: CommerceEvent, ctx: MCPCustomerContext | null): P
   const raw = JSON.parse(completion.choices[0].message.content!)
   const mock = buildMockCXOutput(event, ctx)
   return { ...mock, ...raw, agentName: "cx" as const }
+}
+
+// ─── V4 — CX AGENT AS PURE FUNCTION ────────────────────────
+
+export async function cxAgent(state: CommerceKnowledgeState): Promise<AgentOpinion> {
+  const { customer } = state
+
+  const frictionScore =
+    (customer.churnScore * 0.4) +
+    (customer.supportTicketsOpen > 0 ? 0.3 : 0) +
+    ((1 - customer.engagementScore) * 0.3)
+
+  const recommendation =
+    customer.churnScore > 0.75 && customer.tier === "VIP" ? "ESCALATE_HUMAN" :
+    customer.churnScore > 0.60 ? "VIP_OUTREACH" :
+    customer.churnScore > 0.40 ? "RETENTION_OFFER" : "STANDARD"
+
+  return {
+    agentId: "cx",
+    recommendation,
+    confidence: 0.78,
+    dataQuality: customer.churnScore != null ? 0.85 : 0.4,
+    reasoning: [
+      `Churn score: ${customer.churnScore.toFixed(2)}`,
+      `Friction score: ${frictionScore.toFixed(2)}`,
+      `Journey state: ${customer.journeyState}`,
+      `Support tickets open: ${customer.supportTicketsOpen}`,
+      `Engagement: ${(customer.engagementScore * 100).toFixed(0)}%`,
+    ],
+    expectedOutcome: {
+      retentionGain: recommendation !== "STANDARD" ? 0.12 : 0,
+    },
+    urgency: customer.churnScore > 0.75 ? "immediate" : "high",
+    requiredActions: recommendation === "ESCALATE_HUMAN" ? [{
+      type: "human_escalation",
+      tool: "updateCustomerProperty",
+      params: { customerId: state.event.customerId, props: { vip_escalation: true } },
+      estimatedImpact: customer.ltv * 0.3,
+      rollbackable: true,
+    }] : [],
+    dataQualityFlags: [],
+  }
 }

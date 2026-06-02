@@ -89,10 +89,12 @@ export function buildTraceGraph(
   })
 
   // ─── AGENT NODES ──────────────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const a = trace.agents as any
   const agentDefs = [
-    { id: "agent_fraud",   label: "Fraud Agent",   rec: trace.agents.fraud.recommendation,   score: trace.agents.fraud.score,   color: "#FF3B3B" },
-    { id: "agent_revenue", label: "Revenue Agent", rec: trace.agents.revenue.recommendation, score: trace.agents.revenue.score, color: "#FF9F1C" },
-    { id: "agent_cx",      label: "CX Agent",      rec: trace.agents.cx.recommendation,      score: trace.agents.cx.score,      color: "#2EE59D" },
+    { id: "agent_fraud",   label: "Fraud Agent",   rec: a.fraud?.recommendation,   score: a.fraud?.score   ?? 0, color: "#FF3B3B" },
+    { id: "agent_revenue", label: "Revenue Agent", rec: a.revenue?.recommendation, score: a.revenue?.score ?? 0, color: "#FF9F1C" },
+    { id: "agent_cx",      label: "CX Agent",      rec: a.cx?.recommendation,      score: a.cx?.score      ?? 0, color: "#2EE59D" },
   ]
 
   agentDefs.forEach(a => {

@@ -1,6 +1,9 @@
 // core/agents/fraudAgent.ts
 import { CommerceEvent, MCPCustomerContext, FraudAgentOutput } from "@/core/shared/types"
 import { analyzeBehavior } from "@/core/mcp/behaviorAnalyzer"
+// V4
+import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
+import type { AgentOpinion } from "@/core/shared/agentTypes"
 
 function agentLog(name: string, step: string, data?: any) {
   const msg = `[AGENT][${name}][${step}][${new Date().toISOString()}] ${
@@ -130,4 +133,52 @@ Return ONLY valid JSON: {"fraudScore": 0-1, "recommendation": "BLOCK|ALLOW|STEP_
 
   const raw = JSON.parse(completion.choices[0].message.content!)
   return buildMockFraudOutput(event, ctx, raw.fraudScore ?? baseScore)
+}
+
+// ─── V4 — FRAUD AGENT AS PURE FUNCTION ───────────────────────
+
+export async function fraudAgent(state: CommerceKnowledgeState): Promise<AgentOpinion> {
+  const { fraud, customer, event } = state
+  const score = fraud.enrichedFraudScore
+  const thresholds = state.sessionThresholds
+
+  const recommendation =
+    score > thresholds.fraudBlockThreshold && customer.ltv < 500 ? "BLOCK" :
+    score > thresholds.fraudStepThreshold  && customer.ltv > 1000 ? "STEP_UP_AUTH" :
+    score > thresholds.fraudStepThreshold ? "STEP_UP_AUTH" :
+    score < 0.40 ? "ALLOW" : "HOLD"
+
+  const dataQuality = [
+    fraud.fraudScore != null,
+    customer.behavioralFingerprint != null,
+    fraud.signals.length > 0,
+    customer.ltv > 0,
+    event.value != null,
+  ].filter(Boolean).length / 5
+
+  return {
+    agentId: "fraud",
+    recommendation,
+    confidence: dataQuality * (score > 0.7 ? 0.95 : score > 0.5 ? 0.80 : 0.65),
+    dataQuality,
+    reasoning: [
+      `Fraud score: ${score.toFixed(2)} (base: ${fraud.fraudScore.toFixed(2)})`,
+      ...fraud.signals.map(s => `Signal: ${s}`),
+      `Customer LTV: €${customer.ltv}`,
+      `Threshold (adaptive): ${thresholds.fraudBlockThreshold.toFixed(2)}`,
+    ],
+    expectedOutcome: {
+      fraudPrevented:   recommendation === "BLOCK"         ? event.value ?? 0 : 0,
+      revenueProtected: recommendation === "STEP_UP_AUTH"  ? customer.ltv * 0.15 : 0,
+    },
+    urgency: score > 0.85 ? "immediate" : score > 0.60 ? "high" : "medium",
+    requiredActions: recommendation === "BLOCK" ? [{
+      type: "payment_action",
+      tool: "blockPayment",
+      params: { customerId: event.customerId, reason: fraud.signals[0] ?? "fraud_detected" },
+      estimatedImpact: event.value ?? 0,
+      rollbackable: true,
+    }] : [],
+    dataQualityFlags: dataQuality < 0.6 ? ["INSUFFICIENT_FRAUD_DATA"] : [],
+  }
 }

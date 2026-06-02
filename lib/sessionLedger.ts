@@ -59,6 +59,17 @@ export function getAdaptedThresholds() {
   return ledger.adaptedThresholds
 }
 
+/** Learning Agent hook — nudge a threshold by delta, clamped to safe range */
+export function adjustThreshold(
+  key: "fraudBlockThreshold" | "fraudStepThreshold" | "allowRevenueMin",
+  delta: number
+): void {
+  const t = ledger.adaptedThresholds
+  if (key === "fraudBlockThreshold")  t.fraudBlockThreshold  = Math.max(0.70, Math.min(0.95, t.fraudBlockThreshold  + delta))
+  if (key === "fraudStepThreshold")   t.fraudStepThreshold   = Math.max(0.40, Math.min(0.80, t.fraudStepThreshold   + delta))
+  if (key === "allowRevenueMin")      t.allowRevenueMin      = Math.max(50,   Math.min(500,  t.allowRevenueMin      + delta))
+}
+
 export function getLedgerStats() {
   return {
     blockRate: ledger.blockRate,

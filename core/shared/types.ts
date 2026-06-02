@@ -148,26 +148,39 @@ export interface DecisionTrace {
   id: string
   transactionId: string
   timeline: TraceEntry[]
+
+  // ── V3 required (UI components depend on these) ───────────
   agents: {
-    fraud: FraudAgentOutput
-    revenue: RevenueAgentOutput
-    cx: CXAgentOutput
+    fraud:   FraudAgentOutput | Record<string, unknown>
+    revenue: RevenueAgentOutput | Record<string, unknown>
+    cx:      CXAgentOutput | Record<string, unknown>
   }
   orchestrator: OrchestratorDecision
   consensusWeights: { fraud: number; revenue: number; cx: number }
+  reasoning: string[]
+
+  // ── V4 optional ───────────────────────────────────────────
+  councils?: Record<string, unknown>
+  marketDecision?: unknown
+  executionPlan?: unknown
+  businessImpact?: unknown
+  executiveSummary?: string
+  incidentReconstruction?: unknown
+  counterfactuals?: unknown[]
+  learningInsights?: unknown
+
+  // ── Shared ───────────────────────────────────────────────
   finalDecision: string
   confidence: number
-  reasoning: string[]
   mcpContextSources: string[]
   mcpSavedMs?: number
   paypalData?: PayPalEventData
   writeActions?: WriteActionResult[]
   timestamp: number
-  /** SRE observability: token cost + latency breakdown + anomaly flags */
   observability?: ObservabilityEnvelope
-  /** AI memory graph: node/edge influence map for explainability */
   memoryGraph?: AgentMemoryGraph
 }
+
 
 // ─── ORDER BOOK ───────────────────────────────────────────────
 

@@ -2,7 +2,8 @@
 import {
   CommerceEvent, MCPCustomerContext,
   FraudAgentOutput, RevenueAgentOutput, CXAgentOutput,
-  OrchestratorDecision, DecisionTrace, TraceEntry
+  OrchestratorDecision, DecisionTrace, TraceEntry,
+  WriteActionResult, ObservabilityEnvelope, AgentMemoryGraph,
 } from "@/core/shared/types"
 import { executeAgentDecisionWrites } from "@/server/bloomreach/writeApi"
 import { getAdaptedThresholds, recordDecision, getLedgerStats } from "@/lib/sessionLedger"
@@ -304,3 +305,131 @@ export async function runFullAgentPipeline(
   return trace
 }
 
+
+// ─── V4 PIPELINE — BRAIN ──────────────────────────────────────
+
+export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace> {
+  const t0 = Date.now()
+  const traceId = `trace_${event.id}_${Date.now()}`
+  const spans: { name: string; ts: number; data?: unknown }[] = []
+
+  function span(name: string, data?: unknown) {
+    spans.push({ name, ts: Date.now() - t0, data })
+    console.log(`[BRAIN][${name}]`, data ? JSON.stringify(data).slice(0, 120) : "")
+  }
+
+  // LAYER 0 : State
+  span("CONTEXT_BUILD_START")
+  const { buildCommerceState } = await import("@/core/context/stateBuilder")
+  const mcpCtx = event.mcpContext ?? null
+  const state = await buildCommerceState(event, mcpCtx, mcpCtx?.toolsUsed ?? [])
+  span("CONTEXT_BUILD_COMPLETE", { ms: state.contextFetchLatencyMs })
+
+  // LAYER 1+2 : Councils
+  span("COUNCILS_START")
+  const [{ riskCouncil }, { revenueCouncil }, { customerCouncil }] = await Promise.all([
+    import("@/core/councils/riskCouncil"),
+    import("@/core/councils/revenueCouncil"),
+    import("@/core/councils/customerCouncil"),
+  ])
+  const [riskC, revenueC, customerC] = await Promise.all([
+    riskCouncil(state), revenueCouncil(state), customerCouncil(state),
+  ])
+  span("COUNCILS_COMPLETE", { risk: riskC.recommendation, revenue: revenueC.recommendation, customer: customerC.recommendation })
+
+  // LAYER 3 : Opinion Market
+  const { runOpinionMarket } = await import("@/core/orchestration/opinionMarket")
+  const marketDecision = runOpinionMarket(riskC, revenueC, customerC, state)
+  span("OPINION_MARKET_COMPLETE", { winner: marketDecision.winningCouncil, decision: marketDecision.finalDecision })
+
+  // LAYER 4 : Execute
+  let writeActions: WriteActionResult[] | undefined
+  if (process.env.BLOOMREACH_API_TOKEN && event.customerId) {
+    try {
+      const { executeAgentDecisionWrites } = await import("@/server/bloomreach/writeApi")
+      writeActions = await executeAgentDecisionWrites(event.customerId, marketDecision.finalDecision, {
+        revenueAtRisk: state.revenue.revenueAtRisk,
+        churnRisk: state.customer.churnScore > 0.6 ? "high" : "low",
+        fraudScore: state.fraud.enrichedFraudScore,
+      })
+    } catch (e) { console.warn("[BRAIN] Write failed:", e) }
+  }
+  span("EXECUTION_COMPLETE", { actionsExecuted: writeActions?.length ?? 0 })
+
+  // LAYER 5 : Learning
+  const { recordDecisionForLearning, getLearningInsights } = await import("./learningAgent")
+  recordDecisionForLearning(traceId, marketDecision, state)
+  span("LEARNING_RECORDED")
+
+  const totalMs = Date.now() - t0
+  span("PIPELINE_COMPLETE", { totalMs })
+  console.log(`[BRAIN] Done in ${totalMs}ms — ${marketDecision.finalDecision} (${(marketDecision.confidence * 100).toFixed(0)}% conf) | Winner: ${marketDecision.winningCouncil}`)
+
+  const timeline: TraceEntry[] = spans.map(s => ({
+    time: new Date(t0 + s.ts).toISOString().split("T")[1].replace("Z", ""),
+    label: s.name,
+    type: "decision" as const,
+  }))
+
+  const partialTrace: DecisionTrace = {
+    id: traceId,
+    transactionId: event.id,
+    timeline,
+    finalDecision: marketDecision.finalDecision,
+    confidence: marketDecision.confidence,
+    mcpContextSources: state.mcpToolsUsed,
+    writeActions,
+    timestamp: Date.now(),
+    // V3 compat stubs — overwritten in final return
+    agents: { fraud: {}, revenue: {}, cx: {} },
+    orchestrator: {
+      finalDecision:    marketDecision.finalDecision as OrchestratorDecision["finalDecision"],
+      confidence:       marketDecision.confidence,
+      severity:         "medium" as const,
+      reasoning:        [marketDecision.marketNarrative],
+      actions:          [],
+      consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
+    },
+    consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
+    reasoning: [marketDecision.marketNarrative],
+  }
+
+  // LAYER 6 : Enrichment (best-effort)
+  try { const { buildObservabilityEnvelope } = await import("@/lib/observabilityEnvelope"); partialTrace.observability = buildObservabilityEnvelope(partialTrace) } catch {}
+  try { const { buildAgentMemoryGraph } = await import("@/lib/memoryGraph"); partialTrace.memoryGraph = buildAgentMemoryGraph(partialTrace) } catch {}
+
+  let counterfactuals: unknown[] | undefined
+  try { const { generateCounterfactuals } = await import("@/lib/counterfactualEngine"); counterfactuals = generateCounterfactuals(partialTrace) as unknown[] } catch {}
+
+  let incidentReconstruction: unknown | undefined
+  try { const { reconstructIncidentFromTrace } = await import("@/lib/incidentReconstructor"); incidentReconstruction = reconstructIncidentFromTrace(partialTrace) } catch {}
+
+  return {
+    ...partialTrace,
+    agents: {
+      fraud:   (riskC.memberOpinions.find(o => o.agentId === "fraud")   ?? {}) as Record<string, unknown>,
+      revenue: (riskC.memberOpinions.find(o => o.agentId === "revenue") ?? {}) as Record<string, unknown>,
+      cx:      (riskC.memberOpinions.find(o => o.agentId === "cx")      ?? {}) as Record<string, unknown>,
+    },
+    // V3 compat stubs (UI components read these)
+    orchestrator: {
+      finalDecision:    marketDecision.finalDecision as OrchestratorDecision["finalDecision"],
+      confidence:       marketDecision.confidence,
+      severity:         (state.fraud.riskLevel.toLowerCase() === "critical" ? "critical" : "medium") as OrchestratorDecision["severity"],
+      reasoning:        [marketDecision.marketNarrative],
+      actions:          marketDecision.executionPlan.immediateActions.map(a => a.tool),
+      consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
+    },
+    consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
+    reasoning:        [marketDecision.marketNarrative],
+    // V4
+    councils:             { risk: riskC, revenue: revenueC, customer: customerC },
+    marketDecision,
+    executionPlan:        marketDecision.executionPlan,
+    businessImpact:       marketDecision.executionPlan.businessImpact,
+    executiveSummary:     marketDecision.executionPlan.executiveSummary,
+    counterfactuals,
+    incidentReconstruction,
+    learningInsights:     getLearningInsights(),
+  }
+}

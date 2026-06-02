@@ -1,5 +1,8 @@
 // core/agents/revenueAgent.ts
 import { CommerceEvent, MCPCustomerContext, RevenueAgentOutput } from "@/core/shared/types"
+// V4
+import type { CommerceKnowledgeState } from "@/core/shared/commerceState"
+import type { AgentOpinion } from "@/core/shared/agentTypes"
 
 function log(step: string, data?: any) {
   const msg = `[AGENT][REVENUE][${step}] ${data ? JSON.stringify(data).slice(0, 150) : ""}`
@@ -94,4 +97,46 @@ async function runRevenueLLM(
   const raw = JSON.parse(completion.choices[0].message.content!)
   const mock = buildMockRevenueOutput(event, ctx)
   return { ...mock, ...raw, agentName: "revenue" as const }
+}
+
+// ─── V4 — REVENUE AGENT AS PURE FUNCTION ───────────────────
+
+export async function revenueAgent(state: CommerceKnowledgeState): Promise<AgentOpinion> {
+  const { revenue, customer, campaign } = state
+
+  const recoveryPotential = revenue.revenueAtRisk *
+    (customer.emailOpenRate > 0.4 ? 0.65 : 0.35)
+
+  const recommendation =
+    revenue.revenueAtRisk > 500 && customer.tier === "VIP" ? "PRIORITY_RECOVERY" :
+    revenue.revenueAtRisk > 200 ? "RECOVERY_CAMPAIGN" :
+    revenue.revenueAtRisk > 0   ? "ALLOW" : "MONITOR"
+
+  return {
+    agentId: "revenue",
+    recommendation,
+    confidence: 0.82,
+    dataQuality: revenue.revenueAtRisk > 0 ? 0.9 : 0.5,
+    reasoning: [
+      `Revenue at risk: €${revenue.revenueAtRisk}`,
+      `Recovery potential: €${recoveryPotential.toFixed(0)}`,
+      `Email open rate: ${(customer.emailOpenRate * 100).toFixed(0)}%`,
+      `Campaign performance: ${campaign.campaignPerformance}`,
+      `Forecasted LTV: €${revenue.forecastedLTV}`,
+    ],
+    expectedOutcome: { revenueGained: recoveryPotential },
+    urgency: revenue.revenueAtRisk > 500 ? "high" : "medium",
+    requiredActions: [{
+      type: "campaign_trigger",
+      tool: "trackCustomerEvent",
+      params: {
+        customerId: state.event.customerId,
+        eventName: "payment_recovery_triggered",
+        data: { revenueAtRisk: revenue.revenueAtRisk, recoveryPotential },
+      },
+      estimatedImpact: recoveryPotential,
+      rollbackable: false,
+    }],
+    dataQualityFlags: [],
+  }
 }
