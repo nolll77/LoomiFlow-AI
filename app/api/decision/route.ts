@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server"
-import { runFullAgentPipeline } from "@/core/agents/orchestrator"
+import { runPipelineV4 } from "@/core/agents/orchestrator"
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        await runFullAgentPipeline(body, body.mcpContext ?? null, useLLM, emit)
+        const trace = await runPipelineV4(body)
+        emit("trace_complete", { trace })
       } catch (e) {
         emit("error", { message: String(e) })
       } finally {

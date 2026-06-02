@@ -18,14 +18,20 @@ import AgentArenaPanel from "@/components/visualization/AgentArenaPanel"
 import TrafficSplitPanel from "@/components/visualization/TrafficSplitPanel"
 import MCPTraceGraph from "@/components/visualization/MCPTraceGraph"
 import MemoryGraphVisualizer from "@/components/visualization/MemoryGraphVisualizer"
-type ViewMode = "cockpit" | "arena" | "trace" | "traffic" | "memory"
+import { CouncilsPanel } from "@/components/cockpit/CouncilsPanel"
+import { BusinessImpactPanel } from "@/components/cockpit/BusinessImpactPanel"
+import { LearningPanel } from "@/components/cockpit/LearningPanel"
+import type { BusinessImpactSummary } from "@/core/orchestration/types"
+import type { LearningInsights } from "@/core/agents/learningAgent"
+type ViewMode = "cockpit" | "v4" | "arena" | "trace" | "traffic" | "memory"
 
 const VIEW_LABELS: Record<ViewMode, string> = {
-  cockpit: "⚡ Cockpit",
-  arena: "⚔️ Arena",
-  trace: "🔗 Trace",
-  traffic: "🌊 Traffic",
-  memory: "🧠 Memory",
+  cockpit: "Cockpit",
+  v4:      "V4 Brain",
+  arena:   "Arena",
+  trace:   "Trace",
+  traffic: "Traffic",
+  memory:  "Memory",
 }
 
 export default function CockpitPage() {
@@ -51,6 +57,13 @@ export default function CockpitPage() {
               <div className="text-4xl font-semibold tracking-tight text-slate-900">Design moderne pour l’orchestration IA</div>
               <p className="max-w-2xl text-sm leading-6 text-slate-600">Un tableau de bord clair, épuré et orienté action pour piloter les décisions, la résilience et la supervision en temps réel.</p>
             </div>
+          {/* V4 Executive Summary strip */}
+          {state.lastDecision?.executiveSummary && (
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 flex items-center gap-3">
+              <span className="shrink-0 text-xs font-bold text-emerald-600 font-mono uppercase tracking-widest">Brain</span>
+              <p className="text-xs font-mono text-emerald-800 truncate">{state.lastDecision.executiveSummary}</p>
+            </div>
+          )}
 
             <div className="grid gap-3 sm:grid-flow-col sm:auto-cols-max">
               <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -65,7 +78,7 @@ export default function CockpitPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            {(["cockpit", "arena", "trace", "traffic", "memory"] as ViewMode[]).map(mode => (
+            {(["cockpit", "v4", "arena", "trace", "traffic", "memory"] as ViewMode[]).map(mode => (
               <button key={mode} onClick={() => setViewMode(mode)}
                 className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${viewMode === mode ? "border-slate-900 bg-slate-950 text-white shadow-lg shadow-slate-200/40" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"}`}>
                 {VIEW_LABELS[mode]}
@@ -75,6 +88,32 @@ export default function CockpitPage() {
         </div>
 
         <div className="mt-8 grid grid-cols-12 gap-5">
+          {viewMode === "v4" && (
+            <>
+              <div className="col-span-12 xl:col-span-5 flex flex-col gap-5">
+                <CouncilsPanel trace={state.lastDecision} />
+              </div>
+              <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
+                {state.lastDecision?.businessImpact && state.lastDecision?.executiveSummary ? (
+                  <BusinessImpactPanel
+                    impact={state.lastDecision.businessImpact as BusinessImpactSummary}
+                    executiveSummary={state.lastDecision.executiveSummary}
+                    decision={state.lastDecision.finalDecision}
+                    councilWinner={(state.lastDecision.marketDecision as any)?.winningCouncil ?? "risk"}
+                  />
+                ) : (
+                  <div className="panel-glass rounded-xl p-4 border border-slate-700 text-slate-500 text-xs font-mono">
+                    Trigger an event to see Business Impact.
+                  </div>
+                )}
+              </div>
+              <div className="col-span-12 xl:col-span-3 flex flex-col gap-5">
+                <LearningPanel insights={state.lastDecision?.learningInsights as LearningInsights ?? { ready: false }} />
+                <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
+              </div>
+            </>
+          )}
+
           {viewMode === "cockpit" && (
             <>
               <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">

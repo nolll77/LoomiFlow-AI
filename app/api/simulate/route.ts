@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { DEMO_SCENARIOS } from "@/lib/mockEvents"
-import { runFullAgentPipeline } from "@/core/agents/orchestrator"
+import { runPipelineV4 } from "@/core/agents/orchestrator"
 
 export async function POST(req: NextRequest) {
   const { scenario = "vipPaymentFailure" } = await req.json()
@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const trace = await runFullAgentPipeline(event, event.mcpContext ?? null, useLLM, emit)
+        const trace = await runPipelineV4(event)
+        emit("trace_complete", { trace })
         try {
           const { sendWebSocket } = await import("@/server/websocket/gateway")
           sendWebSocket({ type: "COCKPIT_EVENT", payload: { event, trace, timestamp: Date.now() } })
