@@ -361,6 +361,27 @@ export async function runPipelineV4(event: CommerceEvent): Promise<DecisionTrace
   recordDecisionForLearning(traceId, marketDecision, state)
   span("LEARNING_RECORDED")
 
+  // Heatmap historique — best-effort (ne bloque jamais le pipeline)
+  try {
+    const { recordHeatmapRow } = await import("@/lib/confidenceHeatmap")
+    // On construit un objet trace minimal pour l'enregistrement
+    recordHeatmapRow({
+      id: traceId,
+      transactionId: event.id,
+      timeline: [],
+      finalDecision: marketDecision.finalDecision,
+      confidence: marketDecision.confidence,
+      timestamp: Date.now(),
+      councils: { risk: riskC, revenue: revenueC, customer: customerC } as any,
+      marketDecision,
+      agents: { fraud: {}, revenue: {}, cx: {} },
+      orchestrator: {} as any,
+      consensusWeights: { fraud: 0.62, revenue: 0.23, cx: 0.15 },
+      reasoning: [],
+      mcpContextSources: [],
+    })
+  } catch (e) { console.warn("[BRAIN] Heatmap recording failed:", e) }
+
   const totalMs = Date.now() - t0
   span("PIPELINE_COMPLETE", { totalMs })
   console.log(`[BRAIN] Done in ${totalMs}ms — ${marketDecision.finalDecision} (${(marketDecision.confidence * 100).toFixed(0)}% conf) | Winner: ${marketDecision.winningCouncil}`)

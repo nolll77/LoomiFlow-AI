@@ -21,6 +21,7 @@ import MemoryGraphVisualizer from "@/components/visualization/MemoryGraphVisuali
 import { CouncilsPanel } from "@/components/cockpit/CouncilsPanel"
 import { BusinessImpactPanel } from "@/components/cockpit/BusinessImpactPanel"
 import { LearningPanel } from "@/components/cockpit/LearningPanel"
+import { ConfidenceHeatmap } from "@/components/cockpit/ConfidenceHeatmap"
 import type { BusinessImpactSummary } from "@/core/orchestration/types"
 import type { LearningInsights } from "@/core/agents/learningAgent"
 type ViewMode = "cockpit" | "v4" | "arena" | "trace" | "traffic" | "memory"
@@ -35,7 +36,7 @@ const VIEW_LABELS: Record<ViewMode, string> = {
 }
 
 export default function CockpitPage() {
-  const { state, triggerScenario, injectEvent } = useCockpit()
+  const { state, heatmapRows, triggerScenario, injectEvent } = useCockpit()
   const [viewMode, setViewMode] = useState<ViewMode>("cockpit")
 
   return (
@@ -110,6 +111,7 @@ export default function CockpitPage() {
               </div>
               <div className="col-span-12 xl:col-span-3 flex flex-col gap-5">
                 <LearningPanel insights={state.lastDecision?.learningInsights as LearningInsights ?? { ready: false }} />
+                <ConfidenceHeatmap data={heatmapRows} />
                 <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
               </div>
             </>
@@ -152,6 +154,7 @@ export default function CockpitPage() {
                   )
                 })()}
                 <LearningPanel insights={state.lastDecision?.learningInsights as LearningInsights ?? { ready: false }} />
+                <ConfidenceHeatmap data={heatmapRows} />
               </div>
             </>
           )}

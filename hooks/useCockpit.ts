@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { CockpitState, CommerceEvent, DecisionTrace, ConnectionMode } from "@/core/shared/types"
 import { computeHeartbeat, getHeartbeatState } from "@/lib/heartbeat"
+import type { HeatmapRow } from "@/lib/confidenceHeatmap"
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8080"
 const MAX_EVENTS = 50
@@ -14,6 +15,7 @@ export function useCockpit() {
     connected: false, connectionMode: "disconnected",
     systemMode: "normal", heartbeatState: "idle", heartbeatScore: 0,
   })
+  const [heatmapRows, setHeatmapRows] = useState<HeatmapRow[]>([])
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectRef = useRef<NodeJS.Timeout>()
 
@@ -80,6 +82,28 @@ export function useCockpit() {
       const heartbeatScore = computeHeartbeat(events)
       return { ...s, lastEvent: event, lastDecision: trace ?? s.lastDecision, events, heartbeatScore, heartbeatState: getHeartbeatState(heartbeatScore) }
     })
+    // Accumulate heatmap row if this trace has V4 council data
+    if (trace) {
+      const councils = (trace as any).councils as Record<string, { confidence: number }> | undefined
+      const market   = (trace as any).marketDecision as { winningCouncil?: string } | undefined
+      if (councils && market) {
+        const row: HeatmapRow = {
+          decisionId: trace.id,
+          decision:   trace.finalDecision,
+          ts:         trace.timestamp,
+          councils: {
+            risk:     councils.risk?.confidence     ?? 0,
+            revenue:  councils.revenue?.confidence  ?? 0,
+            customer: councils.customer?.confidence ?? 0,
+          },
+          winner: market.winningCouncil ?? "risk",
+        }
+        setHeatmapRows(prev => {
+          const next = [...prev, row]
+          return next.length > 20 ? next.slice(-20) : next
+        })
+      }
+    }
   }, [])
 
   // Trigger a demo scenario using SSE (Streaming)
@@ -125,5 +149,5 @@ export function useCockpit() {
     } catch (e) { console.error("[COCKPIT] Scenario trigger failed:", e) }
   }, [injectEvent])
 
-  return { state, injectEvent, triggerScenario }
+  return { state, heatmapRows, injectEvent, triggerScenario }
 }
