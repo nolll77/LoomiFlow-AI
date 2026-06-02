@@ -152,13 +152,25 @@ export interface DecisionTrace {
   timeline: TraceEntry[]
 
   // ── V3 required (UI components depend on these) ───────────
+  /**
+   * @deprecated Use `councils` instead for typed V4 agent opinions.
+   */
   agents: {
     fraud:   FraudAgentOutput | Record<string, unknown>
     revenue: RevenueAgentOutput | Record<string, unknown>
     cx:      CXAgentOutput | Record<string, unknown>
   }
+  /**
+   * @deprecated Use `marketDecision` instead for typed V4 orchestration details.
+   */
   orchestrator: OrchestratorDecision
+  /**
+   * @deprecated Use `utilityScores` instead for dynamic weights.
+   */
   consensusWeights: { fraud: number; revenue: number; cx: number }
+  /**
+   * @deprecated Use `marketDecision.marketNarrative` or `narrative` instead.
+   */
   reasoning: string[]
 
   // ── V4 optional ───────────────────────────────────────────
