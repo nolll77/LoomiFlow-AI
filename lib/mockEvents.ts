@@ -69,6 +69,17 @@ export const CONVERSION_ANOMALY: CommerceEvent = {
   customerId: "system",
   value: 1200,
   metadata: { segment: "mobile_eu", dropRate: 0.34, affectedUsers: 847 },
+  mcpContext: {
+    customerId: "system",
+    tier: "standard",
+    ltv: 0,
+    churnRisk: "low",
+    predictionScore: 0,
+    totalOrders: 0,
+    fetchedAt: Date.now(),
+    toolsUsed: ["execute_analytics"],
+    recentEvents: []
+  },
 }
 
 // Scenario 3 — Cart Abandonment (WARM-UP)

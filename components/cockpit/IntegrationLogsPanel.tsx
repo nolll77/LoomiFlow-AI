@@ -53,6 +53,7 @@ export default function IntegrationLogsPanel({ decision }: { decision: DecisionT
         if (tool === "get_customer_properties") details = "Sarah Mitchell (VIP, LTV €3200)"
         if (tool === "get_customer_prediction_score") details = "Churn propensity 0.82"
         if (tool === "list_customer_events") details = "14 historical checkouts analysed"
+        if (tool === "execute_analytics") details = "Funnel anomaly detected (drop rate 0.34)"
 
         generatedLines.push({
           text: `[MCP] tool_call: ${tool} → OK (${details})`,
