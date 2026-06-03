@@ -123,7 +123,7 @@ export default function CockpitPage() {
                 <EventStream events={state.events} lastDecision={state.lastDecision} />
                 <IntegrationLogsPanel decision={state.lastDecision} />
                 <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
-                <MCPStatusCard />
+                <MCPStatusCard decision={state.lastDecision} />
               </div>
 
               <div className="col-span-12 xl:col-span-5 flex flex-col gap-5">
@@ -192,7 +192,7 @@ export default function CockpitPage() {
               </div>
               <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
                 <CanaryStatusPanel lastDecision={state.lastDecision} />
-                <MCPStatusCard />
+                <MCPStatusCard decision={state.lastDecision} />
               </div>
             </>
           )}
