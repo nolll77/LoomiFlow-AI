@@ -185,7 +185,7 @@ export default function StatusBar({
               ♥ {HEARTBEAT_LABELS[heartbeatState]}
             </span>
             <span>{eventCount} events</span>
-            <span className={connected ? "text-emerald-600" : "text-red-600"}>
+            <span style={{ color: connected ? "#10b981" : "#ef4444" }} className="font-bold font-mono">
               {connected ? "● WS" : "○ DISC"}
             </span>
           </div>
