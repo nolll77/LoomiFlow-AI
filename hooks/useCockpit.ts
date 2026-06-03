@@ -48,6 +48,7 @@ export function useCockpit() {
             setState(s => {
               const events = [event, ...s.events].slice(0, MAX_EVENTS)
               const heartbeatScore = computeHeartbeat(events)
+              const isDemo = event.id?.includes("vip") || event.id?.includes("anomaly") || event.id?.includes("cart") || event.id?.includes("demo")
               return {
                 ...s,
                 lastEvent: event,
@@ -55,7 +56,7 @@ export function useCockpit() {
                 events,
                 heartbeatScore,
                 heartbeatState: getHeartbeatState(heartbeatScore),
-                systemMode: heartbeatScore > 0.8 ? "fraud_spike" : heartbeatScore > 0.5 ? "high_load" : "normal",
+                systemMode: isDemo ? "demo" : (heartbeatScore > 0.8 ? "fraud_spike" : heartbeatScore > 0.5 ? "high_load" : "normal"),
               }
             })
           }
@@ -88,7 +89,16 @@ export function useCockpit() {
     setState(s => {
       const events = [event, ...s.events].slice(0, MAX_EVENTS)
       const heartbeatScore = computeHeartbeat(events)
-      return { ...s, lastEvent: event, lastDecision: trace ?? s.lastDecision, events, heartbeatScore, heartbeatState: getHeartbeatState(heartbeatScore) }
+      const isDemo = event.id?.includes("vip") || event.id?.includes("anomaly") || event.id?.includes("cart") || event.id?.includes("demo")
+      return {
+        ...s,
+        lastEvent: event,
+        lastDecision: trace ?? s.lastDecision,
+        events,
+        heartbeatScore,
+        heartbeatState: getHeartbeatState(heartbeatScore),
+        systemMode: isDemo ? "demo" : (heartbeatScore > 0.8 ? "fraud_spike" : heartbeatScore > 0.5 ? "high_load" : "normal"),
+      }
     })
     // Accumulate heatmap row if this trace has V4 council data
     if (trace) {
