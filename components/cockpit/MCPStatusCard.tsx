@@ -54,7 +54,7 @@ export default function MCPStatusCard({ decision }: { decision: DecisionTrace | 
       setActiveTransfer(false)
     }, 2000)
     return () => clearTimeout(t)
-  }, [decision?.id])
+  }, [decision])
 
   return (
     <div className={`panel-glass rounded-2xl p-3 border transition-all duration-300 ${activeTransfer ? "border-purple-500/80 bg-purple-950/10 shadow-[0_0_15px_rgba(167,139,250,0.15)]" : "border-slate-800"}`}>
