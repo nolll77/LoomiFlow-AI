@@ -25,6 +25,7 @@ import { ConfidenceHeatmap } from "@/components/cockpit/ConfidenceHeatmap"
 import type { BusinessImpactSummary } from "@/core/orchestration/types"
 import type { LearningInsights } from "@/core/agents/learningAgent"
 import SequenceDiagramPanel from "@/components/visualization/SequenceDiagramPanel"
+import IntegrationLogsPanel from "@/components/cockpit/IntegrationLogsPanel"
 
 type ViewMode = "cockpit" | "v4" | "arena" | "trace" | "traffic" | "memory" | "sequence"
 
@@ -120,6 +121,7 @@ export default function CockpitPage() {
             <>
               <div className="col-span-12 xl:col-span-4 flex flex-col gap-5">
                 <EventStream events={state.events} lastDecision={state.lastDecision} />
+                <IntegrationLogsPanel decision={state.lastDecision} />
                 <LoadTestPanel onEvent={(e) => injectEvent(e as any)} triggerScenario={triggerScenario} />
                 <MCPStatusCard />
               </div>
