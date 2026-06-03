@@ -67,12 +67,12 @@ export default function CockpitPage() {
 
             <div className="grid gap-3 sm:grid-flow-col sm:auto-cols-max">
               <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="text-sm font-semibold text-slate-900">Événements</div>
+                <div className="text-sm font-semibold text-slate-900">Events</div>
                 <div className="mt-1 text-2xl font-bold text-slate-900">{state.events.length}</div>
               </div>
               <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="text-sm font-semibold text-slate-900">Dernière décision</div>
-                <div className="mt-1 text-2xl font-bold text-slate-900">{state.lastDecision ? state.lastDecision.orchestrator.finalDecision : "Aucune"}</div>
+                <div className="text-sm font-semibold text-slate-900">Last Decision</div>
+                <div className="mt-1 text-2xl font-bold text-slate-900">{state.lastDecision ? state.lastDecision.orchestrator.finalDecision : "None"}</div>
               </div>
             </div>
           </div>

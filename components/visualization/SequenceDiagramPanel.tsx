@@ -55,79 +55,79 @@ export default function SequenceDiagramPanel({ lastDecision }: SequenceDiagramPa
   const steps = [
     {
       id: 0,
-      title: "1. Événement Entrant",
-      subtitle: "Ingestion du flux",
-      desc: "L'événement e-commerce est reçu par la passerelle de transaction.",
+      title: "1. Incoming Event",
+      subtitle: "Stream Ingestion",
+      desc: "The e-commerce event is received by the transaction gateway.",
       color: "from-blue-500 to-indigo-600",
       glow: "rgba(59,130,246,0.3)",
       details: [
-        { label: "ID Event", val: event.id },
+        { label: "Event ID", val: event.id },
         { label: "Type", val: event.type },
-        { label: "Valeur", val: `€${event.value}` },
-        { label: "Client", val: event.customerId }
+        { label: "Value", val: `€${event.value}` },
+        { label: "Customer", val: event.customerId }
       ]
     },
     {
       id: 1,
-      title: "2. Enrichissement MCP",
-      subtitle: "Appels de contextes",
-      desc: "Interrogation des serveurs de contexte MCP pour récupérer le profil client, le score de fraude et l'historique.",
+      title: "2. MCP Enrichment",
+      subtitle: "Context Fetching",
+      desc: "Querying MCP context servers to retrieve customer profile, fraud score, and history.",
       color: "from-purple-500 to-indigo-600",
       glow: "rgba(167,139,250,0.3)",
       details: [
-        { label: "Outils MCP", val: mcp.mcpToolsUsed?.join(", ") || "Aucun" },
-        { label: "Latence", val: `${mcp.contextFetchLatencyMs}ms` }
+        { label: "MCP Tools", val: mcp.mcpToolsUsed?.join(", ") || "None" },
+        { label: "Latency", val: `${mcp.contextFetchLatencyMs}ms` }
       ]
     },
     {
       id: 2,
-      title: "3. Analyse des Agents",
-      subtitle: "Évaluation d'opinions",
-      desc: "Les agents V4 (Fraude, Revenu et CX) évaluent en parallèle l'état du système.",
+      title: "3. Agent Analysis",
+      subtitle: "Opinion Evaluation",
+      desc: "Specialized V4 agents (Fraud, Revenue, and CX) evaluate system state in parallel.",
       color: "from-sky-500 to-blue-600",
       glow: "rgba(14,165,233,0.3)",
       details: [
-        { label: "Fraude (score)", val: `${((fraudAgent.fraudScore ?? 0.1) * 100).toFixed(0)}%` },
-        { label: "Revenu (LTV)", val: `€${revenueAgent.customerLTV ?? 0}` },
+        { label: "Fraud (score)", val: `${((fraudAgent.fraudScore ?? 0.1) * 100).toFixed(0)}%` },
+        { label: "Revenue (LTV)", val: `€${revenueAgent.customerLTV ?? 0}` },
         { label: "CX (Churn)", val: cxAgent.churnRisk ?? "low" }
       ]
     },
     {
       id: 3,
-      title: "4. Alignement des Conseils",
-      subtitle: "Propositions de consensus",
-      desc: "Les conseils (Risk, Revenue, Customer) agrègent les opinions pour former des propositions d'actions.",
+      title: "4. Council Alignment",
+      subtitle: "Consensus Proposals",
+      desc: "Councils (Risk, Revenue, Customer) aggregate opinions to form action proposals.",
       color: "from-emerald-500 to-teal-600",
       glow: "rgba(16,185,129,0.3)",
       details: [
-        { label: "Risque (Proposal)", val: lastDecision?.councils?.risk?.recommendation ?? "ALLOW" },
-        { label: "Revenu (Proposal)", val: lastDecision?.councils?.revenue?.recommendation ?? "MONITOR" },
-        { label: "Client (Proposal)", val: lastDecision?.councils?.customer?.recommendation ?? "STANDARD" }
+        { label: "Risk (Proposal)", val: lastDecision?.councils?.risk?.recommendation ?? "ALLOW" },
+        { label: "Revenue (Proposal)", val: lastDecision?.councils?.revenue?.recommendation ?? "MONITOR" },
+        { label: "Customer (Proposal)", val: lastDecision?.councils?.customer?.recommendation ?? "STANDARD" }
       ]
     },
     {
       id: 4,
       title: "5. Opinion Market",
-      subtitle: "Arbitrage & Consensus",
-      desc: "Le marché d'opinion arbitre les intérêts conflictuels selon le type de coalition et la confiance globale.",
+      subtitle: "Arbitration & Consensus",
+      desc: "The opinion market arbitrates conflicting interests based on coalition type and global confidence.",
       color: "from-amber-500 to-orange-600",
       glow: "rgba(245,158,11,0.3)",
       details: [
-        { label: "Gagnant", val: marketDecision.winningCouncil },
+        { label: "Winner", val: marketDecision.winningCouncil },
         { label: "Consensus", val: marketDecision.coalitionType },
-        { label: "Confiance", val: `${(marketDecision.confidence * 100).toFixed(0)}%` }
+        { label: "Confidence", val: `${(marketDecision.confidence * 100).toFixed(0)}%` }
       ]
     },
     {
       id: 5,
-      title: "6. Exécution & Écriture",
-      subtitle: "Actions finales",
-      desc: "Enregistrement de la décision finale (BLOCK, ALLOW, etc.) et déclenchement des actions d'écritures Bloomreach.",
+      title: "6. Execution & Write",
+      subtitle: "Final Actions",
+      desc: "Recording final decision (BLOCK, ALLOW, etc.) and triggering Bloomreach write actions.",
       color: "from-red-500 to-pink-600",
       glow: "rgba(239,68,68,0.3)",
       details: [
-        { label: "Décision", val: lastDecision?.finalDecision ?? "HOLD" },
-        { label: "Actions exécutées", val: writeActions?.map((a: any) => a.tool).join(", ") || "Aucune" }
+        { label: "Decision", val: lastDecision?.finalDecision ?? "HOLD" },
+        { label: "Executed Actions", val: writeActions?.map((a: any) => a.tool).join(", ") || "None" }
       ]
     }
   ]
@@ -136,8 +136,8 @@ export default function SequenceDiagramPanel({ lastDecision }: SequenceDiagramPa
     <div className="rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-xl backdrop-blur-md">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Parcours de Requête Interactif (V4 Brain)</h2>
-          <p className="text-xs text-slate-500">Passez votre curseur sur une étape pour zoomer sur la structure de données.</p>
+          <h2 className="text-xl font-bold text-slate-800">Interactive Request Flow (LoomiFlow Brain)</h2>
+          <p className="text-xs text-slate-500">Hover over a step to zoom in on the data structure.</p>
         </div>
         {lastDecision?.id && (
           <div className="rounded-full bg-slate-900 px-3 py-1 text-2xs font-semibold uppercase tracking-wider text-slate-200 font-mono">
